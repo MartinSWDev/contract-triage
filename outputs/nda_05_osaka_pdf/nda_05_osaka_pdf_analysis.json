@@ -1,0 +1,59 @@
+{
+  "doc_type": "nda",
+  "summary": "Incoming mutual NDA with Osaka Digital KK is substantially our MNDA-2026 template. Two substantive deviations: two standard confidentiality carve-outs (independent development and legally-required disclosure) have been deleted from clause 3, and governing law/jurisdiction has been changed to Japan / Osaka District Court. The carve-out deletions are auto-redlined per NDA-CARVEOUTS. The governing-law change is outside our approved set and meets a DRAFT escalate_if under NDA-GOV-LAW, so a lawyer must own that point; escalating to human.",
+  "standard_fraction": 0.9,
+  "priority": "medium",
+  "escalate_to_human": true,
+  "deviations": [
+    {
+      "clause_heading": "3. Exclusions",
+      "paragraph_index": 3,
+      "original_snippet": "(b) was known to the Recipient without restriction before disclosure; or (c) is rightfully received from a third party without a duty of confidentiality.",
+      "rule_id": "NDA-CARVEOUTS",
+      "covered": true,
+      "disposition": "redline",
+      "action": "replace",
+      "proposed_text": "(b) was known to the Recipient without restriction before disclosure; (c) is independently developed by the Recipient without use of the Discloser's Confidential Information; (d) is rightfully received from a third party without a duty of confidentiality; or (e) is required to be disclosed by law or court order, provided the Recipient gives the Discloser prompt written notice where lawful and reasonable assistance to contest or limit the disclosure.",
+      "comment": "Two of the five standard carve-outs are missing: independent development and legally-required disclosure (with notice). Per NDA-CARVEOUTS all five are required; reinstate the deleted carve-outs verbatim from template clause 3. This is an auto-redline (escalate_if is a pushback condition only), so no escalation on the draft alone.",
+      "reply_point": "The standard exclusions (including independent development and legally required disclosure) are required for us to sign; we have reinstated them.",
+      "verified": true
+    },
+    {
+      "clause_heading": "11. Governing Law",
+      "paragraph_index": 11,
+      "original_snippet": "the laws of Japan, and the Osaka District Court shall have exclusive jurisdiction",
+      "rule_id": "NDA-GOV-LAW",
+      "covered": true,
+      "disposition": "escalate",
+      "action": "replace",
+      "proposed_text": "the laws of England and Wales, and the courts of England shall have exclusive jurisdiction",
+      "comment": "Governing law/jurisdiction is Japan / Osaka District Court, outside our approved set (England and Wales, New York, Delaware, Ireland). This meets the DRAFT escalate_if in NDA-GOV-LAW, so a human must own this point. Opening position: revert to England and Wales.",
+      "reply_point": null,
+      "verified": true
+    }
+  ],
+  "draft_reply": "Dear Osaka Digital KK,\n\nThank you for the draft mutual NDA. We have only two points.\n\nFirst, on clause 3 (Exclusions), the standard confidentiality carve-outs for independently developed information and for disclosures required by law (with notice) are required for us to sign, so we have reinstated them.\n\nSecond, on clause 11 (Governing Law), the proposed choice of Japanese law and the Osaka District Court is being reviewed internally and we will revert with our position shortly.\n\nWe expect both points to be straightforward to resolve.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": true,
+  "backend": "cli",
+  "_meta": {
+    "file": "nda_05_osaka_pdf.pdf",
+    "elapsed_seconds": 38.9,
+    "redline_applied": [
+      [
+        "3. Exclusions",
+        "replace"
+      ],
+      [
+        "11. Governing Law",
+        "replace"
+      ]
+    ],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 14,
+      "saved": 11
+    }
+  }
+}

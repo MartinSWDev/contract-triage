@@ -1,0 +1,23 @@
+{
+  "doc_type": "out_of_scope",
+  "summary": "The incoming document is an offer of employment letter to Jordan Reyes for a Senior Data Engineer role, not a mutual NDA or a customer order form. This document type is not handled by the triage playbook and must be routed to a human. No template comparison or deviation analysis was performed.",
+  "standard_fraction": 0,
+  "priority": "low",
+  "escalate_to_human": true,
+  "deviations": [],
+  "draft_reply": "Dear Sir or Madam,\n\nThank you for sending this document. On review, it is an offer of employment rather than a mutual NDA or order form, which are the only document types our automated contract triage currently handles. We have routed it to the appropriate team for review and will come back to you separately.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": true,
+  "backend": "cli",
+  "_meta": {
+    "file": "misc_09_offer_letter.docx",
+    "elapsed_seconds": 13.9,
+    "redline_applied": [],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 5,
+      "assisted": 2,
+      "saved": 3
+    }
+  }
+}

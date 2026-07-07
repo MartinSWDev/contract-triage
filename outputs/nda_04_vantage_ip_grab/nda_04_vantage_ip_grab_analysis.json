@@ -1,0 +1,58 @@
+{
+  "doc_type": "nda",
+  "summary": "Incoming mutual NDA is Vantage Robotics' markup of our MNDA-2026 template. It is largely on our standard paper: two substantive deviations found. The term is extended from 2 to 3 years (within our acceptable range, no change needed). More seriously, a new clause 9 (Improvements and Feedback) assigns all IP and feedback of both parties exclusively to the counterparty - this is not covered by the playbook and needs a lawyer.",
+  "standard_fraction": 0.9,
+  "priority": "high",
+  "escalate_to_human": true,
+  "deviations": [
+    {
+      "clause_heading": "5. Term",
+      "paragraph_index": 6,
+      "original_snippet": "three (3) years",
+      "rule_id": "NDA-TERM",
+      "covered": true,
+      "disposition": "accept",
+      "action": "accept",
+      "proposed_text": null,
+      "comment": "Term extended from our standard two (2) years to three (3) years. Within the acceptable-without-approval range of 1 to 3 years per NDA-TERM; accept with comment, no change needed.",
+      "reply_point": "We are content with the three (3) year term you have proposed.",
+      "verified": true
+    },
+    {
+      "clause_heading": "9. Improvements and Feedback",
+      "paragraph_index": 10,
+      "original_snippet": "Any improvements, derivative works, inventions or feedback conceived by either party in connection with the Purpose, whether or not incorporating Confidential Information, shall be the sole and exclusive property of Vantage Robotics Pty Ltd, and Fictional Co hereby assigns all right, title and interest in the same to Vantage Robotics Pty Ltd.",
+      "rule_id": null,
+      "covered": false,
+      "disposition": "escalate",
+      "action": "flag_only",
+      "proposed_text": null,
+      "comment": "NOT COVERED - needs a human. New clause added (not in MNDA-2026) that assigns all improvements, derivative works, inventions and feedback of both parties - including Fictional Co's - exclusively to Vantage Robotics, with an express assignment by Fictional Co. This is a one-sided IP assignment, not a confidentiality/residuals point, and the playbook has no position on it. Route to a lawyer.",
+      "verified": true
+    }
+  ],
+  "draft_reply": "Dear Vantage Robotics team,\n\nThank you for sending the revised Mutual NDA. We are pleased to confirm we are content with the three (3) year term you have proposed.\n\nOne further point - the newly added clause 9 (Improvements and Feedback), which assigns intellectual property and feedback to Vantage Robotics - is being reviewed by our legal team, and we will revert with our comments shortly.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": true,
+  "backend": "cli",
+  "_meta": {
+    "file": "nda_04_vantage_ip_grab.docx",
+    "elapsed_seconds": 27.8,
+    "redline_applied": [
+      [
+        "5. Term",
+        "accept"
+      ],
+      [
+        "9. Improvements and Feedback",
+        "flag_only"
+      ]
+    ],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 14,
+      "saved": 11
+    }
+  }
+}

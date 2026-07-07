@@ -1,0 +1,76 @@
+{
+  "doc_type": "nda",
+  "summary": "Incoming Quantix Labs MNDA tracks our MNDA-2026 template closely (term, carve-outs, governing law, mutuality all standard) but has three substantive deviations: a perpetual confidentiality period, an added residuals clause, and an added 2-year, all-employee non-solicitation clause. The confidentiality period and residuals are auto-redlined per playbook; the non-solicit meets a DRAFT escalate_if (over 12 months and beyond directly-involved employees), so a human must own that point. Route to a lawyer for the non-solicit while sending our standard redlines on the other two.",
+  "standard_fraction": 0.8,
+  "priority": "high",
+  "escalate_to_human": true,
+  "deviations": [
+    {
+      "clause_heading": "6. Confidentiality Period",
+      "paragraph_index": 7,
+      "original_snippet": "The Recipient's obligations under this Agreement survive indefinitely with respect to all Confidential Information, without limitation in time.",
+      "rule_id": "NDA-CONF-PERIOD",
+      "covered": true,
+      "disposition": "redline",
+      "action": "replace",
+      "proposed_text": "The Recipient's obligations under this Agreement survive for a period of five (5) years from the date of disclosure of the relevant Confidential Information, except that obligations in respect of trade secrets continue for as long as such information remains a trade secret under applicable law.",
+      "comment": "Draft imposes a perpetual/unlimited confidentiality obligation on ordinary Confidential Information. Per NDA-CONF-PERIOD, replace with five (5) years from disclosure, retaining the trade-secret carve-out. The escalate_if here is a pushback condition, so this is auto-redlined without escalation.",
+      "reply_point": "We cannot accept a perpetual confidentiality obligation for ordinary confidential information; we propose 5 years, with trade secrets protected for as long as they remain trade secrets.",
+      "verified": true
+    },
+    {
+      "clause_heading": "9. Residuals",
+      "paragraph_index": 10,
+      "original_snippet": "Notwithstanding anything to the contrary herein, the Recipient may use for any purpose the Residuals resulting from access to the Confidential Information, where \"Residuals\" means information retained in the unaided memory of the Recipient's personnel.",
+      "rule_id": "NDA-RESIDUALS",
+      "covered": true,
+      "disposition": "redline",
+      "action": "delete",
+      "proposed_text": null,
+      "comment": "Added residuals clause not in our template. Per NDA-RESIDUALS, delete in its entirety - a residuals clause effectively licenses our Confidential Information. The escalate_if is a pushback condition, so this is auto-deleted without escalation.",
+      "reply_point": "We cannot accept a residuals clause as it would effectively license our confidential information; we have removed it.",
+      "verified": true
+    },
+    {
+      "clause_heading": "12. Non-Solicitation",
+      "paragraph_index": 13,
+      "original_snippet": "During the term of this Agreement and for two (2) years thereafter, neither party shall directly or indirectly solicit for employment any employee of the other party.",
+      "rule_id": "NDA-NON-SOLICIT",
+      "covered": true,
+      "disposition": "escalate",
+      "action": "delete",
+      "proposed_text": null,
+      "comment": "Added non-solicit not in our NDA template. This meets the DRAFT escalate_if under NDA-NON-SOLICIT: it runs 2 years (over 12 months) AND covers any employee (beyond those directly involved in the discussions), so a human must own this point. Opening position per the pre-approved redline is to delete the clause; if pushed, limit to 12 months and employees directly involved only, with a general job-advert carve-out.",
+      "reply_point": null,
+      "verified": true
+    }
+  ],
+  "draft_reply": "Dear Quantix Labs team,\n\nThank you for sharing the draft mutual NDA. It is largely in line with our standard form, subject to a few points:\n\n1. Confidentiality period (clause 6): we cannot accept a perpetual, unlimited obligation for ordinary confidential information. We have revised this to five (5) years from disclosure, with trade secrets protected for as long as they remain trade secrets.\n\n2. Residuals (clause 9): we are unable to accept a residuals clause, as it would effectively license our confidential information, so we have removed it.\n\nWe are also reviewing the proposed non-solicitation clause internally and will revert with our position shortly.\n\nOur marked-up version is attached. Please let us know if you have any questions.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": true,
+  "backend": "cli",
+  "_meta": {
+    "file": "nda_03_quantix_heavy_redline.docx",
+    "elapsed_seconds": 37.6,
+    "redline_applied": [
+      [
+        "6. Confidentiality Period",
+        "replace"
+      ],
+      [
+        "9. Residuals",
+        "delete"
+      ],
+      [
+        "12. Non-Solicitation",
+        "delete"
+      ]
+    ],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 16,
+      "saved": 9
+    }
+  }
+}

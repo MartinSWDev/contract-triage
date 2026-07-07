@@ -1,0 +1,59 @@
+{
+  "doc_type": "nda",
+  "summary": "Incoming mutual NDA closely follows our MNDA-2026 template with two substantive deviations: the term is extended to five (5) years (P6) and governing law/jurisdiction is New York rather than England and Wales (P12). The term is above our comment-only range but within the fallback, so it is auto-redlined to two years (NDA-TERM); New York is within our approved governing-law set, so it is acceptable as-is (NDA-GOV-LAW). No uncovered points and no DRAFT escalation triggers are met, so this does not require a lawyer.",
+  "standard_fraction": 0.92,
+  "priority": "low",
+  "escalate_to_human": false,
+  "deviations": [
+    {
+      "clause_heading": "5. Term",
+      "paragraph_index": 6,
+      "original_snippet": "continues for a period of five (5) years",
+      "rule_id": "NDA-TERM",
+      "covered": true,
+      "disposition": "redline",
+      "action": "replace",
+      "proposed_text": "continues for a period of two (2) years",
+      "comment": "Term is five (5) years vs our standard two (2) years. Our comment-only range is 1-3 years, so this is outside acceptable-without-approval. Per NDA-TERM, revert to two (2) years as our opening position; up to five (5) years is acceptable under the fallback if the counterparty insists (confidentiality period stays within 5 years). Not an escalation as the term is not longer than 5 years or evergreen.",
+      "reply_point": "Our standard term is two (2) years, which we have reinstated; we can accept up to five (5) years if that is important to you.",
+      "verified": true
+    },
+    {
+      "clause_heading": "11. Governing Law",
+      "paragraph_index": 12,
+      "original_snippet": "the laws of the State of New York, and the state and federal courts located in New York County shall have exclusive jurisdiction",
+      "rule_id": "NDA-GOV-LAW",
+      "covered": true,
+      "disposition": "accept",
+      "action": "accept",
+      "proposed_text": null,
+      "comment": "Governing law/jurisdiction is New York rather than our standard England and Wales. New York is within our approved set (England and Wales, New York, Delaware, Ireland) per NDA-GOV-LAW, so this is acceptable without approval and within the escalate_if safe zone. Accept with no change.",
+      "reply_point": "We are content to proceed under New York law and jurisdiction, which is an approved alternative to our standard English law.",
+      "verified": true
+    }
+  ],
+  "draft_reply": "Dear Helios Energy Corp.,\n\nThank you for the draft mutual NDA. We have completed our review and have only two comments.\n\nOn term (clause 5), our standard is a two (2) year term, which we have reinstated; if a longer term is important to you, we can accept up to five (5) years.\n\nOn governing law (clause 11), we are content to proceed under New York law and the jurisdiction of the New York courts as an approved alternative to our standard English law.\n\nSubject to the above, the draft is acceptable. We look forward to your confirmation.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": false,
+  "backend": "cli",
+  "_meta": {
+    "file": "nda_02_helios_term_govlaw.docx",
+    "elapsed_seconds": 29.5,
+    "redline_applied": [
+      [
+        "5. Term",
+        "replace"
+      ],
+      [
+        "11. Governing Law",
+        "accept"
+      ]
+    ],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 9,
+      "saved": 16
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "doc_type": "order_form",
+  "summary": "This is a customer Order Form under MSA-2026 for Atlas Freight Ltd. On review against the standard template and playbook, the substantive terms (payment Net 30, 12-month auto-renewal with 60 days' notice, 7%/CPI renewal price cap, 12-month fee liability cap, material-breach-only termination, England and Wales governing law) all match our standard positions. The only differences are non-substantive (party name, address, date, MSA date, 50 seats, GBP 48,000 fee). No deviations require redlining or escalation.",
+  "standard_fraction": 1.0,
+  "priority": "medium",
+  "escalate_to_human": false,
+  "deviations": [],
+  "draft_reply": "Dear Atlas Freight team,\n\nThank you for sending through the Order Form. We have reviewed it and are pleased to confirm that the terms are consistent with our standard positions, so no changes are required on our side. We are happy to proceed to signature at your convenience.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": false,
+  "backend": "cli",
+  "_meta": {
+    "file": "of_01_atlas_clean.docx",
+    "elapsed_seconds": 25.2,
+    "redline_applied": [],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 5,
+      "saved": 20
+    }
+  }
+}

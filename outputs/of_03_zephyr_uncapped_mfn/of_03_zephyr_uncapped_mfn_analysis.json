@@ -1,0 +1,59 @@
+{
+  "doc_type": "order_form",
+  "summary": "This is a customer Order Form under MSA-2026 and is substantively standard except for two points. Clause 7 makes Provider's liability unlimited (uncapped) - a DRAFT escalate_if trigger under OF-LIABILITY-CAP, so it escalates even though a redline exists. Clause 3 adds a Most Favoured Customer/most-favoured-nation obligation that has no playbook rule and is NOT COVERED. Route to a lawyer.",
+  "standard_fraction": 0.85,
+  "priority": "high",
+  "escalate_to_human": true,
+  "deviations": [
+    {
+      "clause_heading": "3. Most Favoured Customer",
+      "paragraph_index": 3,
+      "original_snippet": "Provider represents and warrants that the fees and terms offered to Customer are no less favourable than those offered to any other customer of Provider, and shall extend to Customer and its affiliates any more favourable fees or terms offered to any other customer during the Subscription Term.",
+      "rule_id": null,
+      "covered": false,
+      "disposition": "escalate",
+      "action": "flag_only",
+      "proposed_text": null,
+      "comment": "NOT COVERED - needs a human. Added most-favoured-customer/most-favoured-nation clause with a fee-and-terms warranty and automatic extension to affiliates. There is no playbook rule addressing MFN obligations; do not take a position - route to a lawyer.",
+      "reply_point": null,
+      "verified": true
+    },
+    {
+      "clause_heading": "7. Limitation of Liability",
+      "paragraph_index": 7,
+      "original_snippet": "Notwithstanding anything in the MSA, Provider's liability arising out of or in connection with this Order Form shall be unlimited.",
+      "rule_id": "OF-LIABILITY-CAP",
+      "covered": true,
+      "disposition": "escalate",
+      "action": "replace",
+      "proposed_text": "Subject to the exclusions in the MSA, each party's total aggregate liability arising out of or in connection with this Order Form is limited to the fees paid or payable by Customer under this Order Form in the twelve (12) months preceding the event giving rise to the claim.",
+      "comment": "Provider's liability is made unlimited/uncapped. OF-LIABILITY-CAP escalate_if fires on 'Uncapped liability' - this is a DRAFT trigger, so it escalates now even though a redline exists. Opening position: restore the mutual 12 months' fees cap (up to 2x acceptable without approval; 3x super-cap only for confidentiality and data-protection breaches). A human must own the negotiation.",
+      "reply_point": "Provider's liability cannot be unlimited; consistent with our standard we have restored a mutual cap at 12 months' fees, and can offer a 3x super-cap specifically for confidentiality and data-protection breaches.",
+      "verified": true
+    }
+  ],
+  "draft_reply": "Dear Zephyr Airlines team,\n\nThank you for the Order Form. It is largely acceptable and close to our standard terms. On the limitation of liability (clause 7), we cannot accept unlimited Provider liability; consistent with our standard we have restored a mutual cap at the 12 months' fees paid or payable, and we can offer a 3x super-cap specifically for confidentiality and data-protection breaches.\n\nWe are still reviewing the most-favoured-customer provision in clause 3 and will revert on that point separately.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": true,
+  "backend": "cli",
+  "_meta": {
+    "file": "of_03_zephyr_uncapped_mfn.pdf",
+    "elapsed_seconds": 37.4,
+    "redline_applied": [
+      [
+        "3. Most Favoured Customer",
+        "flag_only"
+      ],
+      [
+        "7. Limitation of Liability",
+        "replace"
+      ]
+    ],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 14,
+      "saved": 11
+    }
+  }
+}

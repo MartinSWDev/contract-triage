@@ -1,0 +1,94 @@
+{
+  "doc_type": "order_form",
+  "summary": "Customer order form (Northwind Retail Group) under MSA-2026. Three substantive deviations: payment extended to Net 90 (beyond our Net 60 ceiling - escalates), a general liability cap raised to 3x (above the 2x auto-approve limit - auto-redline to 2x), and auto-renewal removed (acceptable as-is). Draft also deletes late-payment interest, which is not covered by the playbook and needs a human. Escalation required.",
+  "standard_fraction": 0.8,
+  "priority": "high",
+  "escalate_to_human": true,
+  "deviations": [
+    {
+      "clause_heading": "Payment Terms",
+      "paragraph_index": 4,
+      "original_snippet": "payable within ninety (90) days of the invoice date",
+      "rule_id": "OF-PAYMENT",
+      "covered": true,
+      "disposition": "escalate",
+      "action": "replace",
+      "proposed_text": "payable within sixty (60) days of the invoice date",
+      "comment": "OF-PAYMENT: standard is Net 30, acceptable to Net 45, fallback Net 60 for ACV >= 50,000 (this order is GBP 180,000). Net 90 is beyond Net 60, which meets the DRAFT escalate_if - a human must own this. Opening position is to revert to Net 60.",
+      "reply_point": "Our standard payment term is Net 30; we can extend to Net 60 as a concession for an order of this size, but Net 90 is beyond what we can offer.",
+      "verified": true
+    },
+    {
+      "clause_heading": "Payment Terms",
+      "paragraph_index": 4,
+      "original_snippet": "No interest shall accrue on late amounts.",
+      "rule_id": null,
+      "covered": false,
+      "disposition": "escalate",
+      "action": "flag_only",
+      "proposed_text": null,
+      "comment": "NOT COVERED - needs a human. The draft deletes the template's late-payment interest (4% above base rate) and states no interest accrues. The playbook has no position on late-payment interest, so this must be reviewed by a lawyer.",
+      "reply_point": null,
+      "verified": true
+    },
+    {
+      "clause_heading": "Term and Renewal",
+      "paragraph_index": 5,
+      "original_snippet": "This Order Form does not renew automatically; any renewal shall be by written agreement of the parties.",
+      "rule_id": "OF-AUTORENEW",
+      "covered": true,
+      "disposition": "accept",
+      "action": "accept",
+      "proposed_text": null,
+      "comment": "OF-AUTORENEW: removal of auto-renewal (renewal by mutual agreement) is acceptable without approval. No change needed - comment only.",
+      "reply_point": "We are comfortable removing auto-renewal so that any renewal is by mutual written agreement.",
+      "verified": true
+    },
+    {
+      "clause_heading": "Limitation of Liability",
+      "paragraph_index": 7,
+      "original_snippet": "three (3) times the fees paid or payable",
+      "rule_id": "OF-LIABILITY-CAP",
+      "covered": true,
+      "disposition": "redline",
+      "action": "replace",
+      "proposed_text": "two (2) times the fees paid or payable",
+      "comment": "OF-LIABILITY-CAP: standard cap is 12 months' fees (1x), acceptable up to 2x. A 3x general cap exceeds the auto-approve limit but does not meet the escalate_if (not uncapped, not removal beyond super-cap heads). Redline the general cap down to 2x; we can offer a 3x super-cap limited to confidentiality and data-protection breaches if the customer needs more.",
+      "reply_point": "We can move to a 2x fee cap for general liability, and separately offer a 3x cap for confidentiality and data-protection breaches if that is important to you.",
+      "verified": true
+    }
+  ],
+  "draft_reply": "Dear Northwind Retail Group team,\n\nThank you for the order form. A few points on our side:\n\n1. Payment terms: our standard is Net 30, and we can extend to Net 60 as a concession for an order of this size; Net 90 is beyond what we are able to offer, so we have proposed Net 60.\n\n2. Renewal: we are happy with removing auto-renewal so that renewal is by mutual written agreement - no change needed.\n\n3. Limitation of liability: we can agree a 2x fee cap for general liability, and we are also able to offer a 3x cap specifically for confidentiality and data-protection breaches if useful.\n\nOne further change in the payment clause (regarding late-payment interest) is still under review with the wider team, and we will revert shortly.\n\nKind regards,\nFictional Legal",
+  "priority_note": null,
+  "verification_issues": [],
+  "escalation_model_flag": true,
+  "backend": "cli",
+  "_meta": {
+    "file": "of_02_northwind_payment_liability.docx",
+    "elapsed_seconds": 46.8,
+    "redline_applied": [
+      [
+        "Payment Terms",
+        "replace"
+      ],
+      [
+        "Payment Terms",
+        "flag_only"
+      ],
+      [
+        "Term and Renewal",
+        "accept"
+      ],
+      [
+        "Limitation of Liability",
+        "replace"
+      ]
+    ],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 18,
+      "saved": 7
+    }
+  }
+}

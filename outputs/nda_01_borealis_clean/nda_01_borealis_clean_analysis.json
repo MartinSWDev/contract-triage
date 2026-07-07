@@ -1,0 +1,23 @@
+{
+  "doc_type": "nda",
+  "summary": "Incoming mutual NDA from Borealis Software GmbH is substantively identical to our standard template MNDA-2026. The only differences are non-substantive (counterparty name, address, effective date). Term (2 years), confidentiality period (3 years + trade secrets), all five exclusions, mutuality and English governing law all match our standard positions. No deviations to redline and nothing to escalate.",
+  "standard_fraction": 1.0,
+  "priority": "low",
+  "escalate_to_human": false,
+  "deviations": [],
+  "draft_reply": "Dear Borealis Software team,\n\nThank you for sending the mutual NDA. We have reviewed it against our standard template and are pleased to confirm the terms are acceptable as drafted - the two-year term, three-year confidentiality period, standard exclusions and English governing law all align with our usual positions. We have no changes to propose and are happy to proceed to signature.\n\nPlease let us know if a countersigned copy would be helpful.\n\nKind regards,\nFictional Legal",
+  "verification_issues": [],
+  "escalation_model_flag": false,
+  "backend": "cli",
+  "_meta": {
+    "file": "nda_01_borealis_clean.docx",
+    "elapsed_seconds": 15.7,
+    "redline_applied": [],
+    "redline_skipped": [],
+    "estimate": {
+      "manual": 25,
+      "assisted": 5,
+      "saved": 20
+    }
+  }
+}

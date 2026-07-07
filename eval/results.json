@@ -1,0 +1,271 @@
+{
+  "summary": {
+    "samples": 9,
+    "type_accuracy": 1.0,
+    "escalation_accuracy": 1.0,
+    "deviation_tp": 15,
+    "deviation_fn": 0,
+    "deviation_fp": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "hallucinated_advice_on_uncovered": 0,
+    "unverified_quotes_in_output": 0,
+    "mean_analysis_seconds": 30.311111111111106,
+    "mean_minutes_saved_per_contract": 12.0,
+    "missing_outputs": []
+  },
+  "per_sample": [
+    {
+      "file": "misc_09_offer_letter.docx",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 0,
+      "n_pred": 0,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 13.9,
+      "estimate": {
+        "manual": 5,
+        "assisted": 2,
+        "saved": 3
+      }
+    },
+    {
+      "file": "nda_01_borealis_clean.docx",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 0,
+      "n_pred": 0,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 15.7,
+      "estimate": {
+        "manual": 25,
+        "assisted": 5,
+        "saved": 20
+      }
+    },
+    {
+      "file": "nda_02_helios_term_govlaw.docx",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [
+        {
+          "gt": "NDA-TERM",
+          "predicted_rule": "NDA-TERM",
+          "covered_pred": true
+        },
+        {
+          "gt": "NDA-GOV-LAW",
+          "predicted_rule": "NDA-GOV-LAW",
+          "covered_pred": true
+        }
+      ],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 2,
+      "n_pred": 2,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 29.5,
+      "estimate": {
+        "manual": 25,
+        "assisted": 9,
+        "saved": 16
+      }
+    },
+    {
+      "file": "nda_03_quantix_heavy_redline.docx",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [
+        {
+          "gt": "NDA-CONF-PERIOD",
+          "predicted_rule": "NDA-CONF-PERIOD",
+          "covered_pred": true
+        },
+        {
+          "gt": "NDA-NON-SOLICIT",
+          "predicted_rule": "NDA-NON-SOLICIT",
+          "covered_pred": true
+        },
+        {
+          "gt": "NDA-RESIDUALS",
+          "predicted_rule": "NDA-RESIDUALS",
+          "covered_pred": true
+        }
+      ],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 3,
+      "n_pred": 3,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 37.6,
+      "estimate": {
+        "manual": 25,
+        "assisted": 16,
+        "saved": 9
+      }
+    },
+    {
+      "file": "nda_04_vantage_ip_grab.docx",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [
+        {
+          "gt": "NDA-TERM",
+          "predicted_rule": "NDA-TERM",
+          "covered_pred": true
+        },
+        {
+          "gt": "IP assignment of improvements/feedback",
+          "predicted_rule": null,
+          "covered_pred": false
+        }
+      ],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 2,
+      "n_pred": 2,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 27.8,
+      "estimate": {
+        "manual": 25,
+        "assisted": 14,
+        "saved": 11
+      }
+    },
+    {
+      "file": "nda_05_osaka_pdf.pdf",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [
+        {
+          "gt": "NDA-CARVEOUTS",
+          "predicted_rule": "NDA-CARVEOUTS",
+          "covered_pred": true
+        },
+        {
+          "gt": "NDA-GOV-LAW",
+          "predicted_rule": "NDA-GOV-LAW",
+          "covered_pred": true
+        }
+      ],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 2,
+      "n_pred": 2,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 38.9,
+      "estimate": {
+        "manual": 25,
+        "assisted": 14,
+        "saved": 11
+      }
+    },
+    {
+      "file": "of_01_atlas_clean.docx",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 0,
+      "n_pred": 0,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 25.2,
+      "estimate": {
+        "manual": 25,
+        "assisted": 5,
+        "saved": 20
+      }
+    },
+    {
+      "file": "of_02_northwind_payment_liability.docx",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [
+        {
+          "gt": "OF-PAYMENT",
+          "predicted_rule": "OF-PAYMENT",
+          "covered_pred": true
+        },
+        {
+          "gt": "Late-payment interest removed",
+          "predicted_rule": null,
+          "covered_pred": false
+        },
+        {
+          "gt": "OF-LIABILITY-CAP",
+          "predicted_rule": "OF-LIABILITY-CAP",
+          "covered_pred": true
+        },
+        {
+          "gt": "OF-AUTORENEW",
+          "predicted_rule": "OF-AUTORENEW",
+          "covered_pred": true
+        }
+      ],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 4,
+      "n_pred": 4,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 46.8,
+      "estimate": {
+        "manual": 25,
+        "assisted": 18,
+        "saved": 7
+      }
+    },
+    {
+      "file": "of_03_zephyr_uncapped_mfn.pdf",
+      "notes": [],
+      "type_correct": true,
+      "escalation_correct": true,
+      "caught": [
+        {
+          "gt": "OF-LIABILITY-CAP",
+          "predicted_rule": "OF-LIABILITY-CAP",
+          "covered_pred": true
+        },
+        {
+          "gt": "Most-favoured-customer / MFN pricing clause",
+          "predicted_rule": null,
+          "covered_pred": false
+        }
+      ],
+      "missed": [],
+      "false_positives": [],
+      "hallucinated_advice": [],
+      "n_gt": 2,
+      "n_pred": 2,
+      "unverified_quotes": 0,
+      "elapsed_seconds": 37.4,
+      "estimate": {
+        "manual": 25,
+        "assisted": 14,
+        "saved": 11
+      }
+    }
+  ]
+}

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contract Triage</title>
+<style>
+  /* Design notes (design-taste-frontend pass):
+     - Trust-first / regulated surface -> low variance, minimal motion, functional density.
+     - Palette: cool near-monochrome + ONE saturated accent (orange).
+       Deliberately NOT the warm cream/oxblood/espresso "AI premium-craft" default.
+     - Serif is used in exactly ONE place - the quoted contract text - because it
+       echoes the document itself. All app chrome is sans; serif is not decoration.
+     - Font: native system stack, the correct choice for a native desktop app.
+     - Radius scale is locked: buttons 6px, cards/panels 8px, pills full.
+     - Accent (orange) is reserved for brand mark, focus, and the active-row rail;
+       state pills use semantic green/amber/red because they encode meaning. */
+  :root {
+    --bg: #f4f6f8;
+    --panel: #ffffff;
+    --panel-2: #fafbfc;
+    --ink: #16181d;
+    --ink-2: #2b2f38;
+    --muted: #5b6270;
+    --line: #e4e8ec;
+    --line-strong: #d2d8e0;
+    --accent: #e8622c;         /* orange - brand/focus only */
+    --accent-ink: #b34a1e;     /* AA-safe orange for small text */
+    --accent-soft: #fdece3;
+    --green: #1b7a4b;   --green-soft: #e6f4ec;
+    --amber: #8a6410;   --amber-soft: #f5efdb;
+    --red: #b23122;     --red-soft: #f7e4e0;
+    --grey-soft: #eceef2;
+    --r-btn: 6px; --r-card: 8px; --r-pill: 999px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+    --serif: "Iowan Old Style", Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 13.5px/1.5 var(--font);
+    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column;
+  }
+
+  header {
+    padding: 16px 24px 14px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 12px; background: var(--panel);
+  }
+  .mark { width: 22px; height: 22px; border-radius: 5px; background: var(--accent);
+          position: relative; flex: none; }
+  .mark::after { content: ""; position: absolute; inset: 6px 6px auto 6px; height: 3px;
+                 background: #fff; border-radius: 2px; box-shadow: 0 5px 0 #fff; }
+  header h1 { font-size: 16px; font-weight: 650; margin: 0; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); font-size: 12.5px; margin-left: 2px; }
+  header .sub b { color: var(--ink-2); font-weight: 600; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 9px; padding: 11px 24px;
+    border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap;
+  }
+  .path {
+    flex: 1; min-width: 240px; font: 11.5px/1.4 var(--mono);
+    padding: 7px 11px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--r-btn); color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  button {
+    font: inherit; font-size: 12.5px; font-weight: 550; padding: 7px 14px;
+    border-radius: var(--r-btn); border: 1px solid var(--line-strong);
+    background: var(--panel); color: var(--ink-2); cursor: pointer;
+    transition: background .12s, border-color .12s, transform .06s;
+  }
+  button:hover:not(:disabled) { border-color: #b8c0cc; background: var(--panel-2); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  button.primary:hover:not(:disabled) { background: #000; border-color: #000; }
+
+  .status {
+    padding: 8px 24px; color: var(--muted); font-size: 12px; min-height: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .status.busy { color: var(--accent-ink); }
+  .status.busy::before {
+    content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px;
+    border-radius: 50%; background: var(--accent); vertical-align: middle;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+
+  .scorecard {
+    display: none; gap: 9px; padding: 14px 24px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); background: var(--panel-2);
+  }
+  .scorecard.show { display: flex; }
+  .tile {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-card);
+    padding: 10px 14px; min-width: 116px;
+  }
+  .tile .k { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .tile .v { font-size: 20px; font-weight: 600; margin-top: 4px; letter-spacing: -0.01em;
+             font-variant-numeric: tabular-nums; }
+  .tile.good .v { color: var(--green); }
+  .tile.warn .v { color: var(--red); }
+
+  main { flex: 1; display: flex; min-height: 0; }
+  .table-wrap { flex: 1; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--muted); font-weight: 600; padding: 10px 14px;
+    position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line-strong);
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle;
+       font-variant-numeric: tabular-nums; }
+  tr.done { cursor: pointer; }
+  tr.done { box-shadow: inset 3px 0 0 transparent; transition: box-shadow .1s, background .1s; }
+  tr.done:hover { background: var(--panel-2); box-shadow: inset 3px 0 0 var(--accent); }
+  .name { font-weight: 600; color: var(--ink); }
+  .ext { color: var(--muted); font-weight: 400; font-size: 11.5px; }
+
+  .pill {
+    display: inline-block; padding: 2px 9px; border-radius: var(--r-pill);
+    font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  }
+  .pill.green { background: var(--green-soft); color: var(--green); }
+  .pill.amber { background: var(--amber-soft); color: var(--amber); }
+  .pill.red   { background: var(--red-soft); color: var(--red); }
+  .pill.grey  { background: var(--grey-soft); color: var(--ink-2); }
+  .pill.accent{ background: var(--accent-soft); color: var(--accent-ink); }
+  .dim { color: var(--muted); }
+
+  .drawer {
+    width: 0; overflow: hidden; border-left: 1px solid var(--line-strong);
+    background: var(--panel-2); transition: width .18s ease;
+  }
+  .drawer.open { width: 430px; }
+  .drawer-inner { width: 430px; height: 100%; overflow: auto; padding: 20px 22px; }
+  .drawer h2 { font-size: 15px; font-weight: 650; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .drawer h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+               color: var(--muted); margin: 22px 0 9px; }
+  .drawer .close { float: right; }
+  .dev {
+    border: 1px solid var(--line); border-radius: var(--r-card); padding: 11px 13px;
+    margin-bottom: 10px; background: var(--panel);
+  }
+  .dev .head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .dev .clause { font-weight: 600; }
+  .dev .snippet {
+    /* Serif here on purpose: this is verbatim contract text, echoing the document. */
+    font: 12.5px/1.55 var(--serif); color: var(--ink); background: var(--bg);
+    border-left: 3px solid var(--line-strong); padding: 7px 11px; margin: 8px 0;
+    border-radius: 3px;
+  }
+  .dev .comment { font-size: 12px; color: var(--muted); }
+  .dev .proposed { font-size: 12px; margin-top: 7px; }
+  .dev .proposed b { color: var(--accent-ink); }
+  .reply { white-space: pre-wrap; font-size: 12.5px; background: var(--panel);
+           border: 1px solid var(--line); border-radius: var(--r-card); padding: 13px; line-height: 1.55; }
+  .open-file { color: var(--accent-ink); border-color: var(--accent);
+               background: var(--accent-soft); font-weight: 600; }
+  .open-file:hover:not(:disabled) { background: #fce0d3; border-color: var(--accent); }
+  .filenote { font: 11.5px var(--mono); color: var(--muted); word-break: break-all;
+              margin-top: 8px; background: var(--panel); border: 1px solid var(--line);
+              border-radius: var(--r-btn); padding: 8px 10px; }
+  .empty { padding: 44px 24px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+  <header>
+    <div class="mark" aria-hidden="true"></div>
+    <h1>Contract Triage</h1>
+    <span class="sub">Playbook-driven review &middot; <b>Fictional Legal</b></span>
+  </header>
+
+  <div class="toolbar">
+    <span class="path" id="pathLabel">—</span>
+    <button id="browse">Browse folder…</button>
+    <button id="refresh">Refresh</button>
+    <button id="runAll" class="primary">Run all pending</button>
+    <button id="score">Score all (eval)</button>
+  </div>
+
+  <div class="status" id="status">Loading…</div>
+
+  <div class="scorecard" id="scorecard"></div>
+
+  <main>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contract</th><th>Type</th><th>Priority</th>
+            <th>Deviations</th><th>Outcome</th><th>Saved</th><th>Time</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <aside class="drawer" id="drawer"><div class="drawer-inner" id="drawerInner"></div></aside>
+  </main>
+
+<script>
+const invoke = window.__TAURI__.core.invoke;
+const dialog = window.__TAURI__.dialog;
+let currentDir = "";
+let busy = false;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => (s ?? "").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function setStatus(msg, isBusy) {
+  $("status").textContent = msg;
+  $("status").classList.toggle("busy", !!isBusy);
+}
+function setBusy(b) {
+  busy = b;
+  for (const id of ["browse","refresh","runAll","score"]) $(id).disabled = b;
+}
+
+function typePill(t) {
+  if (t === "nda") return `<span class="pill grey">NDA</span>`;
+  if (t === "order_form") return `<span class="pill grey">Order form</span>`;
+  if (t === "out_of_scope") return `<span class="pill grey">Out of scope</span>`;
+  return `<span class="dim">—</span>`;
+}
+function outcomePill(c) {
+  if (c.status !== "done") return `<span class="dim">not run</span>`;
+  if (c.doc_type === "out_of_scope") return `<span class="pill amber">Needs human</span>`;
+  if (c.escalate_to_human) return `<span class="pill amber">Needs human</span>`;
+  return `<span class="pill green">Auto-cleared</span>`;
+}
+function devCell(c) {
+  if (c.status !== "done") return `<span class="dim">—</span>`;
+  if (!c.n_deviations) return `<span class="dim">none</span>`;
+  let s = `${c.n_deviations}`;
+  if (c.n_uncovered) s += ` <span class="pill red">${c.n_uncovered} not covered</span>`;
+  return s;
+}
+
+async function refresh() {
+  try {
+    const items = await invoke("list_contracts", { dir: currentDir });
+    render(items);
+    const done = items.filter(i => i.status === "done").length;
+    setStatus(`${items.length} contract(s) in folder · ${done} analysed · ${items.length - done} pending`);
+  } catch (e) { setStatus("Error: " + e); }
+}
+
+function render(items) {
+  const tb = $("rows");
+  if (!items.length) { tb.innerHTML = `<tr><td colspan="8" class="empty">No .docx or .pdf contracts in this folder.</td></tr>`; return; }
+  tb.innerHTML = items.map(c => {
+    const [stem, ext] = [c.name.replace(/\.(docx|pdf)$/i,''), (c.name.match(/\.(docx|pdf)$/i)||[''])[0]];
+    const action = c.status === "done"
+      ? `<button data-view="${esc(c.path)}">View</button>`
+      : `<button data-run="${esc(c.path)}">Run</button>`;
+    return `<tr class="${c.status}" ${c.status==='done'?`data-open="${esc(c.path)}"`:''}>
+      <td><span class="name">${esc(stem)}</span><span class="ext">${esc(ext)}</span></td>
+      <td>${typePill(c.doc_type)}</td>
+      <td>${c.status==='done' ? esc(c.priority||'—') : '<span class="dim">—</span>'}</td>
+      <td>${devCell(c)}</td>
+      <td>${outcomePill(c)}</td>
+      <td>${c.status==='done' && c.minutes_saved!=null ? '~'+c.minutes_saved+' min' : '<span class="dim">—</span>'}</td>
+      <td>${c.status==='done' && c.elapsed_seconds!=null ? Math.round(c.elapsed_seconds)+'s' : '<span class="dim">—</span>'}</td>
+      <td style="text-align:right">${action}</td>
+    </tr>`;
+  }).join("");
+
+  tb.querySelectorAll("[data-run]").forEach(b => b.onclick = (e) => { e.stopPropagation(); runOne(b.dataset.run); });
+  tb.querySelectorAll("[data-view]").forEach(b => b.onclick = (e) => { e.stopPropagation(); openDetail(b.dataset.view); });
+  tb.querySelectorAll("tr.done").forEach(tr => tr.onclick = () => openDetail(tr.dataset.open));
+}
+
+async function runOne(path) {
+  if (busy) return;
+  setBusy(true);
+  const name = path.split("/").pop();
+  setStatus(`Analysing ${name}… (Claude is reading the contract, ~30–60s)`, true);
+  try {
+    await invoke("run_contract", { path });
+    await refresh();
+    setStatus(`Done: ${name}`);
+  } catch (e) { setStatus("Error on " + name + ": " + e); }
+  setBusy(false);
+}
+
+async function runAll() {
+  if (busy) return;
+  const items = await invoke("list_contracts", { dir: currentDir });
+  const pending = items.filter(i => i.status === "pending");
+  if (!pending.length) { setStatus("Nothing pending — all contracts already analysed."); return; }
+  setBusy(true);
+  for (let i = 0; i < pending.length; i++) {
+    const name = pending[i].name;
+    setStatus(`Analysing ${i+1}/${pending.length}: ${name}… (~30–60s each)`, true);
+    try { await invoke("run_contract", { path: pending[i].path }); }
+    catch (e) { setStatus("Error on " + name + ": " + e); setBusy(false); return; }
+    await refresh();
+  }
+  setBusy(false);
+  setStatus(`Analysed ${pending.length} contract(s).`);
+}
+
+async function score() {
+  if (busy) return;
+  setBusy(true);
+  setStatus("Scoring against ground truth…", true);
+  try {
+    const s = await invoke("run_eval");
+    renderScore(s);
+    setStatus("Evaluation complete — see scorecard above.");
+  } catch (e) { setStatus("Error: " + e); }
+  setBusy(false);
+}
+
+function renderScore(s) {
+  const pct = (x) => Math.round(x * 100) + "%";
+  const tiles = [
+    ["Type triage", pct(s.type_accuracy), s.type_accuracy>=1],
+    ["Escalation", pct(s.escalation_accuracy), s.escalation_accuracy>=1],
+    ["Recall", pct(s.recall), s.recall>=0.85],
+    ["Precision", pct(s.precision), s.precision>=0.85],
+    ["Hallucinated advice", s.hallucinated_advice_on_uncovered, s.hallucinated_advice_on_uncovered===0],
+    ["Unverified quotes", s.unverified_quotes_in_output, s.unverified_quotes_in_output===0],
+    ["Mean time", Math.round(s.mean_analysis_seconds)+"s", true],
+    ["Saved / contract", "~"+Math.round(s.mean_minutes_saved_per_contract)+" min", true],
+  ];
+  $("scorecard").innerHTML = tiles.map(([k,v,ok]) =>
+    `<div class="tile ${ok?'good':'warn'}"><div class="k">${k}</div><div class="v">${v}</div></div>`
+  ).join("");
+  $("scorecard").classList.add("show");
+}
+
+async function openDetail(path) {
+  const d = await invoke("contract_detail", { path });
+  const inner = $("drawerInner");
+  if (d.error) { inner.innerHTML = `<button class="close" onclick="closeDrawer()">Close</button><p>${esc(d.error)}</p>`; }
+  else {
+    const devs = (d.deviations||[]).map(dev => {
+      const badge = !dev.covered ? `<span class="pill red">not covered</span>`
+        : dev.disposition === "escalate" ? `<span class="pill amber">escalate</span>`
+        : dev.disposition === "redline" ? `<span class="pill accent">redline</span>`
+        : `<span class="pill green">accept</span>`;
+      const rule = dev.rule_id ? `<span class="dim">${esc(dev.rule_id)}</span>` : `<span class="dim">no rule</span>`;
+      const proposed = dev.proposed_text ? `<div class="proposed"><b>Proposed:</b> ${esc(dev.proposed_text)}</div>` : "";
+      const unv = dev.verified === false ? ` <span class="pill red">quote unverified</span>` : "";
+      return `<div class="dev"><div class="head"><span class="clause">${esc(dev.clause_heading)}</span>${badge}</div>
+        <div style="margin:4px 0">${rule}${unv}</div>
+        <div class="snippet">${esc(dev.original_snippet)}</div>
+        <div class="comment">${esc(dev.comment)}</div>${proposed}</div>`;
+    }).join("") || `<p class="dim">No deviations — matches the standard template.</p>`;
+    inner.innerHTML = `
+      <button class="close" onclick="closeDrawer()">Close</button>
+      <h2>${esc(d.name)}</h2>
+      <div>${d.escalate_to_human ? '<span class="pill amber">Needs human</span>' : '<span class="pill green">Auto-cleared</span>'}</div>
+      <h3>Triage summary</h3><p>${esc(d.summary)}</p>
+      <h3>Flagged deviations</h3>${devs}
+      <h3>Draft reply</h3><div class="reply">${esc(d.draft_reply)}</div>
+      <h3>Redlined document</h3>
+      <button class="open-file" id="openRedline">Open the tracked-changes Word file ↗</button>
+      <div class="filenote">${esc(d.outputs_dir)}/${esc(d.redline_file)}</div>`;
+    const fullPath = `${d.outputs_dir}/${d.redline_file}`;
+    const btn = inner.querySelector("#openRedline");
+    if (btn) btn.onclick = () => openFile(fullPath);
+  }
+  $("drawer").classList.add("open");
+}
+
+async function openFile(path) {
+  try { await invoke("open_path", { path }); }
+  catch (e) { setStatus("Could not open file: " + e); }
+}
+function closeDrawer() { $("drawer").classList.remove("open"); }
+window.closeDrawer = closeDrawer;
+
+async function pickFolder() {
+  const sel = await dialog.open({ directory: true, defaultPath: currentDir });
+  if (sel) { currentDir = sel; $("pathLabel").textContent = sel; $("scorecard").classList.remove("show"); await refresh(); }
+}
+
+$("browse").onclick = pickFolder;
+$("refresh").onclick = refresh;
+$("runAll").onclick = runAll;
+$("score").onclick = score;
+
+(async () => {
+  currentDir = await invoke("default_dir");
+  $("pathLabel").textContent = currentDir;
+  await refresh();
+})();
+</script>
+</body>
+</html>

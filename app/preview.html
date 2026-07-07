@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Contract Triage</title>
+<style>
+  /* Design notes (design-taste-frontend pass):
+     - Trust-first / regulated surface -> low variance, minimal motion, functional density.
+     - Palette: cool near-monochrome + ONE saturated accent (orange).
+       Deliberately NOT the warm cream/oxblood/espresso "AI premium-craft" default.
+     - Serif is used in exactly ONE place - the quoted contract text - because it
+       echoes the document itself. All app chrome is sans; serif is not decoration.
+     - Font: native system stack, the correct choice for a native desktop app.
+     - Radius scale is locked: buttons 6px, cards/panels 8px, pills full.
+     - Accent (orange) is reserved for brand mark, focus, and the active-row rail;
+       state pills use semantic green/amber/red because they encode meaning. */
+  :root {
+    --bg: #f4f6f8;
+    --panel: #ffffff;
+    --panel-2: #fafbfc;
+    --ink: #16181d;
+    --ink-2: #2b2f38;
+    --muted: #5b6270;
+    --line: #e4e8ec;
+    --line-strong: #d2d8e0;
+    --accent: #e8622c;         /* orange - brand/focus only */
+    --accent-ink: #b34a1e;     /* AA-safe orange for small text */
+    --accent-soft: #fdece3;
+    --green: #1b7a4b;   --green-soft: #e6f4ec;
+    --amber: #8a6410;   --amber-soft: #f5efdb;
+    --red: #b23122;     --red-soft: #f7e4e0;
+    --grey-soft: #eceef2;
+    --r-btn: 6px; --r-card: 8px; --r-pill: 999px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", ui-monospace, "JetBrains Mono", Menlo, monospace;
+    --serif: "Iowan Old Style", Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 13.5px/1.5 var(--font);
+    -webkit-font-smoothing: antialiased;
+    display: flex; flex-direction: column;
+  }
+
+  header {
+    padding: 16px 24px 14px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 12px; background: var(--panel);
+  }
+  .mark { width: 22px; height: 22px; border-radius: 5px; background: var(--accent);
+          position: relative; flex: none; }
+  .mark::after { content: ""; position: absolute; inset: 6px 6px auto 6px; height: 3px;
+                 background: #fff; border-radius: 2px; box-shadow: 0 5px 0 #fff; }
+  header h1 { font-size: 16px; font-weight: 650; margin: 0; letter-spacing: -0.01em; }
+  header .sub { color: var(--muted); font-size: 12.5px; margin-left: 2px; }
+  header .sub b { color: var(--ink-2); font-weight: 600; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 9px; padding: 11px 24px;
+    border-bottom: 1px solid var(--line); background: var(--panel-2); flex-wrap: wrap;
+  }
+  .path {
+    flex: 1; min-width: 240px; font: 11.5px/1.4 var(--mono);
+    padding: 7px 11px; background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--r-btn); color: var(--muted);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  button {
+    font: inherit; font-size: 12.5px; font-weight: 550; padding: 7px 14px;
+    border-radius: var(--r-btn); border: 1px solid var(--line-strong);
+    background: var(--panel); color: var(--ink-2); cursor: pointer;
+    transition: background .12s, border-color .12s, transform .06s;
+  }
+  button:hover:not(:disabled) { border-color: #b8c0cc; background: var(--panel-2); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  button.primary:hover:not(:disabled) { background: #000; border-color: #000; }
+
+  .status {
+    padding: 8px 24px; color: var(--muted); font-size: 12px; min-height: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .status.busy { color: var(--accent-ink); }
+  .status.busy::before {
+    content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px;
+    border-radius: 50%; background: var(--accent); vertical-align: middle;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: .35; } 50% { opacity: 1; } }
+
+  .scorecard {
+    display: none; gap: 9px; padding: 14px 24px; flex-wrap: wrap;
+    border-bottom: 1px solid var(--line); background: var(--panel-2);
+  }
+  .scorecard.show { display: flex; }
+  .tile {
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--r-card);
+    padding: 10px 14px; min-width: 116px;
+  }
+  .tile .k { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .tile .v { font-size: 20px; font-weight: 600; margin-top: 4px; letter-spacing: -0.01em;
+             font-variant-numeric: tabular-nums; }
+  .tile.good .v { color: var(--green); }
+  .tile.warn .v { color: var(--red); }
+
+  main { flex: 1; display: flex; min-height: 0; }
+  .table-wrap { flex: 1; overflow: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--muted); font-weight: 600; padding: 10px 14px;
+    position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line-strong);
+  }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle;
+       font-variant-numeric: tabular-nums; }
+  tr.done { cursor: pointer; }
+  tr.done { box-shadow: inset 3px 0 0 transparent; transition: box-shadow .1s, background .1s; }
+  tr.done:hover { background: var(--panel-2); box-shadow: inset 3px 0 0 var(--accent); }
+  .name { font-weight: 600; color: var(--ink); }
+  .ext { color: var(--muted); font-weight: 400; font-size: 11.5px; }
+
+  .pill {
+    display: inline-block; padding: 2px 9px; border-radius: var(--r-pill);
+    font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  }
+  .pill.green { background: var(--green-soft); color: var(--green); }
+  .pill.amber { background: var(--amber-soft); color: var(--amber); }
+  .pill.red   { background: var(--red-soft); color: var(--red); }
+  .pill.grey  { background: var(--grey-soft); color: var(--ink-2); }
+  .pill.accent{ background: var(--accent-soft); color: var(--accent-ink); }
+  .dim { color: var(--muted); }
+
+  .drawer {
+    width: 0; overflow: hidden; border-left: 1px solid var(--line-strong);
+    background: var(--panel-2); transition: width .18s ease;
+  }
+  .drawer.open { width: 430px; }
+  .drawer-inner { width: 430px; height: 100%; overflow: auto; padding: 20px 22px; }
+  .drawer h2 { font-size: 15px; font-weight: 650; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .drawer h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+               color: var(--muted); margin: 22px 0 9px; }
+  .drawer .close { float: right; }
+  .dev {
+    border: 1px solid var(--line); border-radius: var(--r-card); padding: 11px 13px;
+    margin-bottom: 10px; background: var(--panel);
+  }
+  .dev .head { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .dev .clause { font-weight: 600; }
+  .dev .snippet {
+    /* Serif here on purpose: this is verbatim contract text, echoing the document. */
+    font: 12.5px/1.55 var(--serif); color: var(--ink); background: var(--bg);
+    border-left: 3px solid var(--line-strong); padding: 7px 11px; margin: 8px 0;
+    border-radius: 3px;
+  }
+  .dev .comment { font-size: 12px; color: var(--muted); }
+  .dev .proposed { font-size: 12px; margin-top: 7px; }
+  .dev .proposed b { color: var(--accent-ink); }
+  .reply { white-space: pre-wrap; font-size: 12.5px; background: var(--panel);
+           border: 1px solid var(--line); border-radius: var(--r-card); padding: 13px; line-height: 1.55; }
+  .open-file { color: var(--accent-ink); border-color: var(--accent);
+               background: var(--accent-soft); font-weight: 600; }
+  .open-file:hover:not(:disabled) { background: #fce0d3; border-color: var(--accent); }
+  .filenote { font: 11.5px var(--mono); color: var(--muted); word-break: break-all;
+              margin-top: 8px; background: var(--panel); border: 1px solid var(--line);
+              border-radius: var(--r-btn); padding: 8px 10px; }
+  .empty { padding: 44px 24px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+<div style="background:#fdece3;color:#b34a1e;border-bottom:1px solid #e8622c;padding:8px 24px;font:12.5px -apple-system,sans-serif"><b>Static preview</b> &middot; the real UI with sample data baked in, no backend. Buttons that need the OS (open file, folder picker, running contracts) are stubbed here. Build the native app per <b>app/README.md</b> to run it live.</div>
+  <header>
+    <div class="mark" aria-hidden="true"></div>
+    <h1>Contract Triage</h1>
+    <span class="sub">Playbook-driven review &middot; <b>Fictional Legal</b></span>
+  </header>
+
+  <div class="toolbar">
+    <span class="path" id="pathLabel">—</span>
+    <button id="browse">Browse folder…</button>
+    <button id="refresh">Refresh</button>
+    <button id="runAll" class="primary">Run all pending</button>
+    <button id="score">Score all (eval)</button>
+  </div>
+
+  <div class="status" id="status">Loading…</div>
+
+  <div class="scorecard" id="scorecard"></div>
+
+  <main>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Contract</th><th>Type</th><th>Priority</th>
+            <th>Deviations</th><th>Outcome</th><th>Saved</th><th>Time</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+    <aside class="drawer" id="drawer"><div class="drawer-inner" id="drawerInner"></div></aside>
+  </main>
+
+<script>window.__TAURI__={core:{invoke:async(c,a)=>{const M={"list": [{"name": "misc_09_offer_letter.docx", "path": "samples/misc_09_offer_letter.docx", "status": "done", "doc_type": "out_of_scope", "priority": "low", "escalate_to_human": true, "n_deviations": 0, "n_uncovered": 0, "standard_fraction": 0, "elapsed_seconds": 13.9, "minutes_saved": 3, "unverified_quotes": 0}, {"name": "nda_01_borealis_clean.docx", "path": "samples/nda_01_borealis_clean.docx", "status": "done", "doc_type": "nda", "priority": "low", "escalate_to_human": false, "n_deviations": 0, "n_uncovered": 0, "standard_fraction": 1.0, "elapsed_seconds": 15.7, "minutes_saved": 20, "unverified_quotes": 0}, {"name": "nda_02_helios_term_govlaw.docx", "path": "samples/nda_02_helios_term_govlaw.docx", "status": "done", "doc_type": "nda", "priority": "low", "escalate_to_human": false, "n_deviations": 2, "n_uncovered": 0, "standard_fraction": 0.92, "elapsed_seconds": 29.5, "minutes_saved": 16, "unverified_quotes": 0}, {"name": "nda_03_quantix_heavy_redline.docx", "path": "samples/nda_03_quantix_heavy_redline.docx", "status": "done", "doc_type": "nda", "priority": "high", "escalate_to_human": true, "n_deviations": 3, "n_uncovered": 0, "standard_fraction": 0.8, "elapsed_seconds": 37.6, "minutes_saved": 9, "unverified_quotes": 0}, {"name": "nda_04_vantage_ip_grab.docx", "path": "samples/nda_04_vantage_ip_grab.docx", "status": "done", "doc_type": "nda", "priority": "high", "escalate_to_human": true, "n_deviations": 2, "n_uncovered": 1, "standard_fraction": 0.9, "elapsed_seconds": 27.8, "minutes_saved": 11, "unverified_quotes": 0}, {"name": "nda_05_osaka_pdf.pdf", "path": "samples/nda_05_osaka_pdf.pdf", "status": "done", "doc_type": "nda", "priority": "medium", "escalate_to_human": true, "n_deviations": 2, "n_uncovered": 0, "standard_fraction": 0.9, "elapsed_seconds": 38.9, "minutes_saved": 11, "unverified_quotes": 0}, {"name": "of_01_atlas_clean.docx", "path": "samples/of_01_atlas_clean.docx", "status": "done", "doc_type": "order_form", "priority": "medium", "escalate_to_human": false, "n_deviations": 0, "n_uncovered": 0, "standard_fraction": 1.0, "elapsed_seconds": 25.2, "minutes_saved": 20, "unverified_quotes": 0}, {"name": "of_02_northwind_payment_liability.docx", "path": "samples/of_02_northwind_payment_liability.docx", "status": "done", "doc_type": "order_form", "priority": "high", "escalate_to_human": true, "n_deviations": 4, "n_uncovered": 1, "standard_fraction": 0.8, "elapsed_seconds": 46.8, "minutes_saved": 7, "unverified_quotes": 0}, {"name": "of_03_zephyr_uncapped_mfn.pdf", "path": "samples/of_03_zephyr_uncapped_mfn.pdf", "status": "done", "doc_type": "order_form", "priority": "high", "escalate_to_human": true, "n_deviations": 2, "n_uncovered": 1, "standard_fraction": 0.85, "elapsed_seconds": 37.4, "minutes_saved": 11, "unverified_quotes": 0}], "details": {"samples/misc_09_offer_letter.docx": {"name": "misc_09_offer_letter.docx", "summary": "The incoming document is an offer of employment letter to Jordan Reyes for a Senior Data Engineer role, not a mutual NDA or a customer order form. This document type is not handled by the triage playbook and must be routed to a human. No template comparison or deviation analysis was performed.", "draft_reply": "Dear Sir or Madam,\n\nThank you for sending this document. On review, it is an offer of employment rather than a mutual NDA or order form, which are the only document types our automated contract triage currently handles. We have routed it to the appropriate team for review and will come back to you separately.\n\nKind regards,\nFictional Legal", "escalate_to_human": true, "outputs_dir": "/path/to/contract-triage/outputs/misc_09_offer_letter", "redline_file": "misc_09_offer_letter_REDLINE.docx", "deviations": []}, "samples/nda_01_borealis_clean.docx": {"name": "nda_01_borealis_clean.docx", "summary": "Incoming mutual NDA from Borealis Software GmbH is substantively identical to our standard template MNDA-2026. The only differences are non-substantive (counterparty name, address, effective date). Term (2 years), confidentiality period (3 years + trade secrets), all five exclusions, mutuality and English governing law all match our standard positions. No deviations to redline and nothing to escalate.", "draft_reply": "Dear Borealis Software team,\n\nThank you for sending the mutual NDA. We have reviewed it against our standard template and are pleased to confirm the terms are acceptable as drafted - the two-year term, three-year confidentiality period, standard exclusions and English governing law all align with our usual positions. We have no changes to propose and are happy to proceed to signature.\n\nPlease let us know if a countersigned copy would be helpful.\n\nKind regards,\nFictional Legal", "escalate_to_human": false, "outputs_dir": "/path/to/contract-triage/outputs/nda_01_borealis_clean", "redline_file": "nda_01_borealis_clean_REDLINE.docx", "deviations": []}, "samples/nda_02_helios_term_govlaw.docx": {"name": "nda_02_helios_term_govlaw.docx", "summary": "Incoming mutual NDA closely follows our MNDA-2026 template with two substantive deviations: the term is extended to five (5) years (P6) and governing law/jurisdiction is New York rather than England and Wales (P12). The term is above our comment-only range but within the fallback, so it is auto-redlined to two years (NDA-TERM); New York is within our approved governing-law set, so it is acceptable as-is (NDA-GOV-LAW). No uncovered points and no DRAFT escalation triggers are met, so this does not require a lawyer.", "draft_reply": "Dear Helios Energy Corp.,\n\nThank you for the draft mutual NDA. We have completed our review and have only two comments.\n\nOn term (clause 5), our standard is a two (2) year term, which we have reinstated; if a longer term is important to you, we can accept up to five (5) years.\n\nOn governing law (clause 11), we are content to proceed under New York law and the jurisdiction of the New York courts as an approved alternative to our standard English law.\n\nSubject to the above, the draft is acceptable. We look forward to your confirmation.\n\nKind regards,\nFictional Legal", "escalate_to_human": false, "outputs_dir": "/path/to/contract-triage/outputs/nda_02_helios_term_govlaw", "redline_file": "nda_02_helios_term_govlaw_REDLINE.docx", "deviations": [{"clause_heading": "5. Term", "rule_id": "NDA-TERM", "covered": true, "disposition": "redline", "verified": true, "original_snippet": "continues for a period of five (5) years", "proposed_text": "continues for a period of two (2) years", "comment": "Term is five (5) years vs our standard two (2) years. Our comment-only range is 1-3 years, so this is outside acceptable-without-approval. Per NDA-TERM, revert to two (2) years as our opening position; up to five (5) years is acceptable under the fallback if the counterparty insists (confidentiality period stays within 5 years). Not an escalation as the term is not longer than 5 years or evergreen."}, {"clause_heading": "11. Governing Law", "rule_id": "NDA-GOV-LAW", "covered": true, "disposition": "accept", "verified": true, "original_snippet": "the laws of the State of New York, and the state and federal courts located in New York County shall have exclusive jurisdiction", "proposed_text": null, "comment": "Governing law/jurisdiction is New York rather than our standard England and Wales. New York is within our approved set (England and Wales, New York, Delaware, Ireland) per NDA-GOV-LAW, so this is acceptable without approval and within the escalate_if safe zone. Accept with no change."}]}, "samples/nda_03_quantix_heavy_redline.docx": {"name": "nda_03_quantix_heavy_redline.docx", "summary": "Incoming Quantix Labs MNDA tracks our MNDA-2026 template closely (term, carve-outs, governing law, mutuality all standard) but has three substantive deviations: a perpetual confidentiality period, an added residuals clause, and an added 2-year, all-employee non-solicitation clause. The confidentiality period and residuals are auto-redlined per playbook; the non-solicit meets a DRAFT escalate_if (over 12 months and beyond directly-involved employees), so a human must own that point. Route to a lawyer for the non-solicit while sending our standard redlines on the other two.", "draft_reply": "Dear Quantix Labs team,\n\nThank you for sharing the draft mutual NDA. It is largely in line with our standard form, subject to a few points:\n\n1. Confidentiality period (clause 6): we cannot accept a perpetual, unlimited obligation for ordinary confidential information. We have revised this to five (5) years from disclosure, with trade secrets protected for as long as they remain trade secrets.\n\n2. Residuals (clause 9): we are unable to accept a residuals clause, as it would effectively license our confidential information, so we have removed it.\n\nWe are also reviewing the proposed non-solicitation clause internally and will revert with our position shortly.\n\nOur marked-up version is attached. Please let us know if you have any questions.\n\nKind regards,\nFictional Legal", "escalate_to_human": true, "outputs_dir": "/path/to/contract-triage/outputs/nda_03_quantix_heavy_redline", "redline_file": "nda_03_quantix_heavy_redline_REDLINE.docx", "deviations": [{"clause_heading": "6. Confidentiality Period", "rule_id": "NDA-CONF-PERIOD", "covered": true, "disposition": "redline", "verified": true, "original_snippet": "The Recipient's obligations under this Agreement survive indefinitely with respect to all Confidential Information, without limitation in time.", "proposed_text": "The Recipient's obligations under this Agreement survive for a period of five (5) years from the date of disclosure of the relevant Confidential Information, except that obligations in respect of trade secrets continue for as long as such information remains a trade secret under applicable law.", "comment": "Draft imposes a perpetual/unlimited confidentiality obligation on ordinary Confidential Information. Per NDA-CONF-PERIOD, replace with five (5) years from disclosure, retaining the trade-secret carve-out. The escalate_if here is a pushback condition, so this is auto-redlined without escalation."}, {"clause_heading": "9. Residuals", "rule_id": "NDA-RESIDUALS", "covered": true, "disposition": "redline", "verified": true, "original_snippet": "Notwithstanding anything to the contrary herein, the Recipient may use for any purpose the Residuals resulting from access to the Confidential Information, where \"Residuals\" means information retained in the unaided memory of the Recipient's personnel.", "proposed_text": null, "comment": "Added residuals clause not in our template. Per NDA-RESIDUALS, delete in its entirety - a residuals clause effectively licenses our Confidential Information. The escalate_if is a pushback condition, so this is auto-deleted without escalation."}, {"clause_heading": "12. Non-Solicitation", "rule_id": "NDA-NON-SOLICIT", "covered": true, "disposition": "escalate", "verified": true, "original_snippet": "During the term of this Agreement and for two (2) years thereafter, neither party shall directly or indirectly solicit for employment any employee of the other party.", "proposed_text": null, "comment": "Added non-solicit not in our NDA template. This meets the DRAFT escalate_if under NDA-NON-SOLICIT: it runs 2 years (over 12 months) AND covers any employee (beyond those directly involved in the discussions), so a human must own this point. Opening position per the pre-approved redline is to delete the clause; if pushed, limit to 12 months and employees directly involved only, with a general job-advert carve-out."}]}, "samples/nda_04_vantage_ip_grab.docx": {"name": "nda_04_vantage_ip_grab.docx", "summary": "Incoming mutual NDA is Vantage Robotics' markup of our MNDA-2026 template. It is largely on our standard paper: two substantive deviations found. The term is extended from 2 to 3 years (within our acceptable range, no change needed). More seriously, a new clause 9 (Improvements and Feedback) assigns all IP and feedback of both parties exclusively to the counterparty - this is not covered by the playbook and needs a lawyer.", "draft_reply": "Dear Vantage Robotics team,\n\nThank you for sending the revised Mutual NDA. We are pleased to confirm we are content with the three (3) year term you have proposed.\n\nOne further point - the newly added clause 9 (Improvements and Feedback), which assigns intellectual property and feedback to Vantage Robotics - is being reviewed by our legal team, and we will revert with our comments shortly.\n\nKind regards,\nFictional Legal", "escalate_to_human": true, "outputs_dir": "/path/to/contract-triage/outputs/nda_04_vantage_ip_grab", "redline_file": "nda_04_vantage_ip_grab_REDLINE.docx", "deviations": [{"clause_heading": "5. Term", "rule_id": "NDA-TERM", "covered": true, "disposition": "accept", "verified": true, "original_snippet": "three (3) years", "proposed_text": null, "comment": "Term extended from our standard two (2) years to three (3) years. Within the acceptable-without-approval range of 1 to 3 years per NDA-TERM; accept with comment, no change needed."}, {"clause_heading": "9. Improvements and Feedback", "rule_id": null, "covered": false, "disposition": "escalate", "verified": true, "original_snippet": "Any improvements, derivative works, inventions or feedback conceived by either party in connection with the Purpose, whether or not incorporating Confidential Information, shall be the sole and exclusive property of Vantage Robotics Pty Ltd, and Fictional Co hereby assigns all right, title and interest in the same to Vantage Robotics Pty Ltd.", "proposed_text": null, "comment": "NOT COVERED - needs a human. New clause added (not in MNDA-2026) that assigns all improvements, derivative works, inventions and feedback of both parties - including Fictional Co's - exclusively to Vantage Robotics, with an express assignment by Fictional Co. This is a one-sided IP assignment, not a confidentiality/residuals point, and the playbook has no position on it. Route to a lawyer."}]}, "samples/nda_05_osaka_pdf.pdf": {"name": "nda_05_osaka_pdf.pdf", "summary": "Incoming mutual NDA with Osaka Digital KK is substantially our MNDA-2026 template. Two substantive deviations: two standard confidentiality carve-outs (independent development and legally-required disclosure) have been deleted from clause 3, and governing law/jurisdiction has been changed to Japan / Osaka District Court. The carve-out deletions are auto-redlined per NDA-CARVEOUTS. The governing-law change is outside our approved set and meets a DRAFT escalate_if under NDA-GOV-LAW, so a lawyer must own that point; escalating to human.", "draft_reply": "Dear Osaka Digital KK,\n\nThank you for the draft mutual NDA. We have only two points.\n\nFirst, on clause 3 (Exclusions), the standard confidentiality carve-outs for independently developed information and for disclosures required by law (with notice) are required for us to sign, so we have reinstated them.\n\nSecond, on clause 11 (Governing Law), the proposed choice of Japanese law and the Osaka District Court is being reviewed internally and we will revert with our position shortly.\n\nWe expect both points to be straightforward to resolve.\n\nKind regards,\nFictional Legal", "escalate_to_human": true, "outputs_dir": "/path/to/contract-triage/outputs/nda_05_osaka_pdf", "redline_file": "nda_05_osaka_pdf_REDLINE.docx", "deviations": [{"clause_heading": "3. Exclusions", "rule_id": "NDA-CARVEOUTS", "covered": true, "disposition": "redline", "verified": true, "original_snippet": "(b) was known to the Recipient without restriction before disclosure; or (c) is rightfully received from a third party without a duty of confidentiality.", "proposed_text": "(b) was known to the Recipient without restriction before disclosure; (c) is independently developed by the Recipient without use of the Discloser's Confidential Information; (d) is rightfully received from a third party without a duty of confidentiality; or (e) is required to be disclosed by law or court order, provided the Recipient gives the Discloser prompt written notice where lawful and reasonable assistance to contest or limit the disclosure.", "comment": "Two of the five standard carve-outs are missing: independent development and legally-required disclosure (with notice). Per NDA-CARVEOUTS all five are required; reinstate the deleted carve-outs verbatim from template clause 3. This is an auto-redline (escalate_if is a pushback condition only), so no escalation on the draft alone."}, {"clause_heading": "11. Governing Law", "rule_id": "NDA-GOV-LAW", "covered": true, "disposition": "escalate", "verified": true, "original_snippet": "the laws of Japan, and the Osaka District Court shall have exclusive jurisdiction", "proposed_text": "the laws of England and Wales, and the courts of England shall have exclusive jurisdiction", "comment": "Governing law/jurisdiction is Japan / Osaka District Court, outside our approved set (England and Wales, New York, Delaware, Ireland). This meets the DRAFT escalate_if in NDA-GOV-LAW, so a human must own this point. Opening position: revert to England and Wales."}]}, "samples/of_01_atlas_clean.docx": {"name": "of_01_atlas_clean.docx", "summary": "This is a customer Order Form under MSA-2026 for Atlas Freight Ltd. On review against the standard template and playbook, the substantive terms (payment Net 30, 12-month auto-renewal with 60 days' notice, 7%/CPI renewal price cap, 12-month fee liability cap, material-breach-only termination, England and Wales governing law) all match our standard positions. The only differences are non-substantive (party name, address, date, MSA date, 50 seats, GBP 48,000 fee). No deviations require redlining or escalation.", "draft_reply": "Dear Atlas Freight team,\n\nThank you for sending through the Order Form. We have reviewed it and are pleased to confirm that the terms are consistent with our standard positions, so no changes are required on our side. We are happy to proceed to signature at your convenience.\n\nKind regards,\nFictional Legal", "escalate_to_human": false, "outputs_dir": "/path/to/contract-triage/outputs/of_01_atlas_clean", "redline_file": "of_01_atlas_clean_REDLINE.docx", "deviations": []}, "samples/of_02_northwind_payment_liability.docx": {"name": "of_02_northwind_payment_liability.docx", "summary": "Customer order form (Northwind Retail Group) under MSA-2026. Three substantive deviations: payment extended to Net 90 (beyond our Net 60 ceiling - escalates), a general liability cap raised to 3x (above the 2x auto-approve limit - auto-redline to 2x), and auto-renewal removed (acceptable as-is). Draft also deletes late-payment interest, which is not covered by the playbook and needs a human. Escalation required.", "draft_reply": "Dear Northwind Retail Group team,\n\nThank you for the order form. A few points on our side:\n\n1. Payment terms: our standard is Net 30, and we can extend to Net 60 as a concession for an order of this size; Net 90 is beyond what we are able to offer, so we have proposed Net 60.\n\n2. Renewal: we are happy with removing auto-renewal so that renewal is by mutual written agreement - no change needed.\n\n3. Limitation of liability: we can agree a 2x fee cap for general liability, and we are also able to offer a 3x cap specifically for confidentiality and data-protection breaches if useful.\n\nOne further change in the payment clause (regarding late-payment interest) is still under review with the wider team, and we will revert shortly.\n\nKind regards,\nFictional Legal", "escalate_to_human": true, "outputs_dir": "/path/to/contract-triage/outputs/of_02_northwind_payment_liability", "redline_file": "of_02_northwind_payment_liability_REDLINE.docx", "deviations": [{"clause_heading": "Payment Terms", "rule_id": "OF-PAYMENT", "covered": true, "disposition": "escalate", "verified": true, "original_snippet": "payable within ninety (90) days of the invoice date", "proposed_text": "payable within sixty (60) days of the invoice date", "comment": "OF-PAYMENT: standard is Net 30, acceptable to Net 45, fallback Net 60 for ACV >= 50,000 (this order is GBP 180,000). Net 90 is beyond Net 60, which meets the DRAFT escalate_if - a human must own this. Opening position is to revert to Net 60."}, {"clause_heading": "Payment Terms", "rule_id": null, "covered": false, "disposition": "escalate", "verified": true, "original_snippet": "No interest shall accrue on late amounts.", "proposed_text": null, "comment": "NOT COVERED - needs a human. The draft deletes the template's late-payment interest (4% above base rate) and states no interest accrues. The playbook has no position on late-payment interest, so this must be reviewed by a lawyer."}, {"clause_heading": "Term and Renewal", "rule_id": "OF-AUTORENEW", "covered": true, "disposition": "accept", "verified": true, "original_snippet": "This Order Form does not renew automatically; any renewal shall be by written agreement of the parties.", "proposed_text": null, "comment": "OF-AUTORENEW: removal of auto-renewal (renewal by mutual agreement) is acceptable without approval. No change needed - comment only."}, {"clause_heading": "Limitation of Liability", "rule_id": "OF-LIABILITY-CAP", "covered": true, "disposition": "redline", "verified": true, "original_snippet": "three (3) times the fees paid or payable", "proposed_text": "two (2) times the fees paid or payable", "comment": "OF-LIABILITY-CAP: standard cap is 12 months' fees (1x), acceptable up to 2x. A 3x general cap exceeds the auto-approve limit but does not meet the escalate_if (not uncapped, not removal beyond super-cap heads). Redline the general cap down to 2x; we can offer a 3x super-cap limited to confidentiality and data-protection breaches if the customer needs more."}]}, "samples/of_03_zephyr_uncapped_mfn.pdf": {"name": "of_03_zephyr_uncapped_mfn.pdf", "summary": "This is a customer Order Form under MSA-2026 and is substantively standard except for two points. Clause 7 makes Provider's liability unlimited (uncapped) - a DRAFT escalate_if trigger under OF-LIABILITY-CAP, so it escalates even though a redline exists. Clause 3 adds a Most Favoured Customer/most-favoured-nation obligation that has no playbook rule and is NOT COVERED. Route to a lawyer.", "draft_reply": "Dear Zephyr Airlines team,\n\nThank you for the Order Form. It is largely acceptable and close to our standard terms. On the limitation of liability (clause 7), we cannot accept unlimited Provider liability; consistent with our standard we have restored a mutual cap at the 12 months' fees paid or payable, and we can offer a 3x super-cap specifically for confidentiality and data-protection breaches.\n\nWe are still reviewing the most-favoured-customer provision in clause 3 and will revert on that point separately.\n\nKind regards,\nFictional Legal", "escalate_to_human": true, "outputs_dir": "/path/to/contract-triage/outputs/of_03_zephyr_uncapped_mfn", "redline_file": "of_03_zephyr_uncapped_mfn_REDLINE.docx", "deviations": [{"clause_heading": "3. Most Favoured Customer", "rule_id": null, "covered": false, "disposition": "escalate", "verified": true, "original_snippet": "Provider represents and warrants that the fees and terms offered to Customer are no less favourable than those offered to any other customer of Provider, and shall extend to Customer and its affiliates any more favourable fees or terms offered to any other customer during the Subscription Term.", "proposed_text": null, "comment": "NOT COVERED - needs a human. Added most-favoured-customer/most-favoured-nation clause with a fee-and-terms warranty and automatic extension to affiliates. There is no playbook rule addressing MFN obligations; do not take a position - route to a lawyer."}, {"clause_heading": "7. Limitation of Liability", "rule_id": "OF-LIABILITY-CAP", "covered": true, "disposition": "escalate", "verified": true, "original_snippet": "Notwithstanding anything in the MSA, Provider's liability arising out of or in connection with this Order Form shall be unlimited.", "proposed_text": "Subject to the exclusions in the MSA, each party's total aggregate liability arising out of or in connection with this Order Form is limited to the fees paid or payable by Customer under this Order Form in the twelve (12) months preceding the event giving rise to the claim.", "comment": "Provider's liability is made unlimited/uncapped. OF-LIABILITY-CAP escalate_if fires on 'Uncapped liability' - this is a DRAFT trigger, so it escalates now even though a redline exists. Opening position: restore the mutual 12 months' fees cap (up to 2x acceptable without approval; 3x super-cap only for confidentiality and data-protection breaches). A human must own the negotiation."}]}}, "eval": {"samples": 9, "type_accuracy": 1.0, "escalation_accuracy": 1.0, "deviation_tp": 15, "deviation_fn": 0, "deviation_fp": 0, "precision": 1.0, "recall": 1.0, "hallucinated_advice_on_uncovered": 0, "unverified_quotes_in_output": 0, "mean_analysis_seconds": 30.311111111111106, "mean_minutes_saved_per_contract": 12.0, "missing_outputs": []}, "dir": "/path/to/contract-triage/samples"};if(c==='default_dir')return M.dir;if(c==='list_contracts')return M.list;if(c==='run_contract')return M.list[0];if(c==='contract_detail')return M.details[a.path]||{error:'not analysed in this static preview'};if(c==='run_eval')return M.eval;if(c==='open_path'){alert('In the real desktop app this opens the redline in Word.\n\n'+a.path);return null;}}},dialog:{open:async()=>{alert('Folder picker works in the real desktop app.');return null;}}};</script>
+<script>
+const invoke = window.__TAURI__.core.invoke;
+const dialog = window.__TAURI__.dialog;
+let currentDir = "";
+let busy = false;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => (s ?? "").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function setStatus(msg, isBusy) {
+  $("status").textContent = msg;
+  $("status").classList.toggle("busy", !!isBusy);
+}
+function setBusy(b) {
+  busy = b;
+  for (const id of ["browse","refresh","runAll","score"]) $(id).disabled = b;
+}
+
+function typePill(t) {
+  if (t === "nda") return `<span class="pill grey">NDA</span>`;
+  if (t === "order_form") return `<span class="pill grey">Order form</span>`;
+  if (t === "out_of_scope") return `<span class="pill grey">Out of scope</span>`;
+  return `<span class="dim">—</span>`;
+}
+function outcomePill(c) {
+  if (c.status !== "done") return `<span class="dim">not run</span>`;
+  if (c.doc_type === "out_of_scope") return `<span class="pill amber">Needs human</span>`;
+  if (c.escalate_to_human) return `<span class="pill amber">Needs human</span>`;
+  return `<span class="pill green">Auto-cleared</span>`;
+}
+function devCell(c) {
+  if (c.status !== "done") return `<span class="dim">—</span>`;
+  if (!c.n_deviations) return `<span class="dim">none</span>`;
+  let s = `${c.n_deviations}`;
+  if (c.n_uncovered) s += ` <span class="pill red">${c.n_uncovered} not covered</span>`;
+  return s;
+}
+
+async function refresh() {
+  try {
+    const items = await invoke("list_contracts", { dir: currentDir });
+    render(items);
+    const done = items.filter(i => i.status === "done").length;
+    setStatus(`${items.length} contract(s) in folder · ${done} analysed · ${items.length - done} pending`);
+  } catch (e) { setStatus("Error: " + e); }
+}
+
+function render(items) {
+  const tb = $("rows");
+  if (!items.length) { tb.innerHTML = `<tr><td colspan="8" class="empty">No .docx or .pdf contracts in this folder.</td></tr>`; return; }
+  tb.innerHTML = items.map(c => {
+    const [stem, ext] = [c.name.replace(/\.(docx|pdf)$/i,''), (c.name.match(/\.(docx|pdf)$/i)||[''])[0]];
+    const action = c.status === "done"
+      ? `<button data-view="${esc(c.path)}">View</button>`
+      : `<button data-run="${esc(c.path)}">Run</button>`;
+    return `<tr class="${c.status}" ${c.status==='done'?`data-open="${esc(c.path)}"`:''}>
+      <td><span class="name">${esc(stem)}</span><span class="ext">${esc(ext)}</span></td>
+      <td>${typePill(c.doc_type)}</td>
+      <td>${c.status==='done' ? esc(c.priority||'—') : '<span class="dim">—</span>'}</td>
+      <td>${devCell(c)}</td>
+      <td>${outcomePill(c)}</td>
+      <td>${c.status==='done' && c.minutes_saved!=null ? '~'+c.minutes_saved+' min' : '<span class="dim">—</span>'}</td>
+      <td>${c.status==='done' && c.elapsed_seconds!=null ? Math.round(c.elapsed_seconds)+'s' : '<span class="dim">—</span>'}</td>
+      <td style="text-align:right">${action}</td>
+    </tr>`;
+  }).join("");
+
+  tb.querySelectorAll("[data-run]").forEach(b => b.onclick = (e) => { e.stopPropagation(); runOne(b.dataset.run); });
+  tb.querySelectorAll("[data-view]").forEach(b => b.onclick = (e) => { e.stopPropagation(); openDetail(b.dataset.view); });
+  tb.querySelectorAll("tr.done").forEach(tr => tr.onclick = () => openDetail(tr.dataset.open));
+}
+
+async function runOne(path) {
+  if (busy) return;
+  setBusy(true);
+  const name = path.split("/").pop();
+  setStatus(`Analysing ${name}… (Claude is reading the contract, ~30–60s)`, true);
+  try {
+    await invoke("run_contract", { path });
+    await refresh();
+    setStatus(`Done: ${name}`);
+  } catch (e) { setStatus("Error on " + name + ": " + e); }
+  setBusy(false);
+}
+
+async function runAll() {
+  if (busy) return;
+  const items = await invoke("list_contracts", { dir: currentDir });
+  const pending = items.filter(i => i.status === "pending");
+  if (!pending.length) { setStatus("Nothing pending — all contracts already analysed."); return; }
+  setBusy(true);
+  for (let i = 0; i < pending.length; i++) {
+    const name = pending[i].name;
+    setStatus(`Analysing ${i+1}/${pending.length}: ${name}… (~30–60s each)`, true);
+    try { await invoke("run_contract", { path: pending[i].path }); }
+    catch (e) { setStatus("Error on " + name + ": " + e); setBusy(false); return; }
+    await refresh();
+  }
+  setBusy(false);
+  setStatus(`Analysed ${pending.length} contract(s).`);
+}
+
+async function score() {
+  if (busy) return;
+  setBusy(true);
+  setStatus("Scoring against ground truth…", true);
+  try {
+    const s = await invoke("run_eval");
+    renderScore(s);
+    setStatus("Evaluation complete — see scorecard above.");
+  } catch (e) { setStatus("Error: " + e); }
+  setBusy(false);
+}
+
+function renderScore(s) {
+  const pct = (x) => Math.round(x * 100) + "%";
+  const tiles = [
+    ["Type triage", pct(s.type_accuracy), s.type_accuracy>=1],
+    ["Escalation", pct(s.escalation_accuracy), s.escalation_accuracy>=1],
+    ["Recall", pct(s.recall), s.recall>=0.85],
+    ["Precision", pct(s.precision), s.precision>=0.85],
+    ["Hallucinated advice", s.hallucinated_advice_on_uncovered, s.hallucinated_advice_on_uncovered===0],
+    ["Unverified quotes", s.unverified_quotes_in_output, s.unverified_quotes_in_output===0],
+    ["Mean time", Math.round(s.mean_analysis_seconds)+"s", true],
+    ["Saved / contract", "~"+Math.round(s.mean_minutes_saved_per_contract)+" min", true],
+  ];
+  $("scorecard").innerHTML = tiles.map(([k,v,ok]) =>
+    `<div class="tile ${ok?'good':'warn'}"><div class="k">${k}</div><div class="v">${v}</div></div>`
+  ).join("");
+  $("scorecard").classList.add("show");
+}
+
+async function openDetail(path) {
+  const d = await invoke("contract_detail", { path });
+  const inner = $("drawerInner");
+  if (d.error) { inner.innerHTML = `<button class="close" onclick="closeDrawer()">Close</button><p>${esc(d.error)}</p>`; }
+  else {
+    const devs = (d.deviations||[]).map(dev => {
+      const badge = !dev.covered ? `<span class="pill red">not covered</span>`
+        : dev.disposition === "escalate" ? `<span class="pill amber">escalate</span>`
+        : dev.disposition === "redline" ? `<span class="pill accent">redline</span>`
+        : `<span class="pill green">accept</span>`;
+      const rule = dev.rule_id ? `<span class="dim">${esc(dev.rule_id)}</span>` : `<span class="dim">no rule</span>`;
+      const proposed = dev.proposed_text ? `<div class="proposed"><b>Proposed:</b> ${esc(dev.proposed_text)}</div>` : "";
+      const unv = dev.verified === false ? ` <span class="pill red">quote unverified</span>` : "";
+      return `<div class="dev"><div class="head"><span class="clause">${esc(dev.clause_heading)}</span>${badge}</div>
+        <div style="margin:4px 0">${rule}${unv}</div>
+        <div class="snippet">${esc(dev.original_snippet)}</div>
+        <div class="comment">${esc(dev.comment)}</div>${proposed}</div>`;
+    }).join("") || `<p class="dim">No deviations — matches the standard template.</p>`;
+    inner.innerHTML = `
+      <button class="close" onclick="closeDrawer()">Close</button>
+      <h2>${esc(d.name)}</h2>
+      <div>${d.escalate_to_human ? '<span class="pill amber">Needs human</span>' : '<span class="pill green">Auto-cleared</span>'}</div>
+      <h3>Triage summary</h3><p>${esc(d.summary)}</p>
+      <h3>Flagged deviations</h3>${devs}
+      <h3>Draft reply</h3><div class="reply">${esc(d.draft_reply)}</div>
+      <h3>Redlined document</h3>
+      <button class="open-file" id="openRedline">Open the tracked-changes Word file ↗</button>
+      <div class="filenote">${esc(d.outputs_dir)}/${esc(d.redline_file)}</div>`;
+    const fullPath = `${d.outputs_dir}/${d.redline_file}`;
+    const btn = inner.querySelector("#openRedline");
+    if (btn) btn.onclick = () => openFile(fullPath);
+  }
+  $("drawer").classList.add("open");
+}
+
+async function openFile(path) {
+  try { await invoke("open_path", { path }); }
+  catch (e) { setStatus("Could not open file: " + e); }
+}
+function closeDrawer() { $("drawer").classList.remove("open"); }
+window.closeDrawer = closeDrawer;
+
+async function pickFolder() {
+  const sel = await dialog.open({ directory: true, defaultPath: currentDir });
+  if (sel) { currentDir = sel; $("pathLabel").textContent = sel; $("scorecard").classList.remove("show"); await refresh(); }
+}
+
+$("browse").onclick = pickFolder;
+$("refresh").onclick = refresh;
+$("runAll").onclick = runAll;
+$("score").onclick = score;
+
+(async () => {
+  currentDir = await invoke("default_dir");
+  $("pathLabel").textContent = currentDir;
+  await refresh();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Contract Triage Playbook",
+  "description": "Structure for the legal team's playbook. Editor validation so a malformed rule is caught before it reaches the assistant.",
+  "type": "object",
+  "required": ["version", "document_types"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "string" },
+    "last_reviewed": { "type": "string" },
+    "escalation_policy": { "type": "string" },
+    "document_types": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/documentType" }
+    }
+  },
+  "$defs": {
+    "documentType": {
+      "type": "object",
+      "required": ["description", "rules"],
+      "additionalProperties": false,
+      "properties": {
+        "description": { "type": "string" },
+        "default_priority": { "enum": ["low", "medium", "high"] },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/rule" }
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": ["id", "topic", "standard", "escalate_if"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z]+-[A-Z0-9-]+$",
+          "description": "Traceable rule id the assistant cites, e.g. NDA-TERM."
+        },
+        "topic": { "type": "string" },
+        "standard": {
+          "type": "string",
+          "description": "Our default position on this clause."
+        },
+        "acceptable_without_approval": {
+          "type": "string",
+          "description": "Range a lawyer would accept without escalating."
+        },
+        "fallback": {
+          "type": "string",
+          "description": "How far we can move if pushed."
+        },
+        "preapproved_redline": {
+          "type": "string",
+          "description": "Pre-approved edit the assistant may propose."
+        },
+        "counterparty_reply": {
+          "type": "string",
+          "description": "Wording for the draft reply on this point."
+        },
+        "escalate_if": {
+          "type": "string",
+          "description": "When a lawyer must own the point. DRAFT conditions fire on the incoming document; PUSHBACK conditions fire only after the counterparty resists our redline."
+        }
+      }
+    }
+  }
+}

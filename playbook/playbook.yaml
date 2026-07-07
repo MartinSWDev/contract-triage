@@ -1,0 +1,276 @@
+# yaml-language-server: $schema=./playbook.schema.json
+---
+# Playbook — standard positions and pre-approved responses
+# Owner: Legal team. Review quarterly. Version controlled; the assistant
+# quotes rule ids in its output so every suggestion is traceable to a rule.
+version: "1.2"
+last_reviewed: "2026-06-15"
+
+escalation_policy: |
+  Any deviation not matched to a rule in this playbook MUST be flagged
+  "NOT COVERED - needs a human" and the contract routed to a lawyer.
+  The assistant must never invent a position that is not in this playbook.
+
+  Each rule's "escalate_if" states WHEN a lawyer must own the point.
+  Triggers come in two kinds, distinguished by wording:
+    - DRAFT conditions ("The draft's ... is ...") fire on the incoming
+      document itself. If met, the deviation escalates now - even if a
+      pre-approved redline exists (the redline is our opening position;
+      a human owns the negotiation).
+    - PUSHBACK conditions ("Only if, after our redline, the counterparty
+      refuses ...") do NOT fire on the incoming draft; those deviations
+      are auto-redlined and only escalate later if the counterparty
+      resists.
+  A contract is routed to a human if ANY deviation is not covered, OR ANY
+  deviation meets a DRAFT escalate_if condition, OR it is not an NDA or
+  order form.
+
+document_types:
+  nda:
+    description: >-
+      Mutual non-disclosure agreement (our standard template MNDA-2026).
+    default_priority: low
+    rules:
+      - id: NDA-TERM
+        topic: Term of agreement
+        standard: "2 years from the Effective Date."
+        acceptable_without_approval: "1 to 3 years."
+        fallback: >-
+          Up to 5 years acceptable if the counterparty insists, provided
+          the confidentiality period (NDA-CONF-PERIOD) stays at or below
+          5 years.
+        preapproved_redline: >-
+          Revert term to two (2) years; if counterparty insists, accept
+          up to five (5) years.
+        counterparty_reply: >-
+          We can accept a term of up to 5 years, though our standard is
+          2 years.
+        escalate_if: "Term longer than 5 years or evergreen/perpetual."
+
+      - id: NDA-CONF-PERIOD
+        topic: Confidentiality period (survival)
+        standard: >-
+          3 years from disclosure; trade secrets for as long as they
+          remain trade secrets.
+        acceptable_without_approval: "2 to 5 years."
+        fallback: "5 years max for ordinary confidential information."
+        preapproved_redline: >-
+          Replace any unlimited/perpetual confidentiality obligation with
+          five (5) years from disclosure, retaining the trade-secret
+          carve-out.
+        counterparty_reply: >-
+          We cannot accept a perpetual confidentiality obligation for
+          ordinary confidential information; we propose 5 years, with
+          trade secrets protected for as long as they remain trade
+          secrets.
+        # Pushback condition: the incoming draft's perpetual term is
+        # auto-redlined to 5 years and does NOT itself require escalation.
+        escalate_if: >-
+          Only if, after our 5-year redline, the counterparty refuses any
+          time limit.
+
+      - id: NDA-GOV-LAW
+        topic: Governing law and jurisdiction
+        standard: >-
+          England and Wales; courts of England have exclusive
+          jurisdiction.
+        acceptable_without_approval: "New York, Delaware, or Ireland."
+        fallback: >-
+          Counterparty's home jurisdiction if it is in the acceptable
+          list.
+        preapproved_redline: >-
+          If governing law is not England and Wales, New York, Delaware
+          or Ireland, revert to England and Wales.
+        counterparty_reply: >-
+          We can accept New York, Delaware or Irish law as alternatives
+          to our standard English law.
+        # Draft condition: fires on the incoming document.
+        escalate_if: >-
+          The draft's governing law or jurisdiction is outside our
+          approved set (England and Wales, New York, Delaware, Ireland),
+          including any arbitration seat.
+
+      - id: NDA-CARVEOUTS
+        topic: Standard confidentiality carve-outs
+        standard: >-
+          Five standard exclusions: (a) publicly available; (b) already
+          known; (c) independently developed; (d) rightfully received
+          from a third party; (e) required to be disclosed by law with
+          notice.
+        acceptable_without_approval: "Minor rewording that preserves all five."
+        fallback: "None - all five carve-outs are required."
+        preapproved_redline: >-
+          Reinstate any deleted standard carve-out verbatim from our
+          template clause 3.
+        counterparty_reply: >-
+          The standard exclusions (including independent development and
+          legally required disclosure) are required for us to sign; we
+          have reinstated them.
+        # Pushback condition: a draft with missing carve-outs is
+        # auto-reinstated and does NOT itself require escalation.
+        escalate_if: >-
+          Only if, after we reinstate them, the counterparty refuses the
+          independent-development or legal-disclosure carve-out.
+
+      - id: NDA-NON-SOLICIT
+        topic: Non-solicitation of employees
+        standard: "Not included in our NDA template."
+        acceptable_without_approval: "None."
+        fallback: >-
+          If counterparty insists, accept only a 12-month non-solicit
+          limited to employees directly involved in the discussions, with
+          a general advertising carve-out.
+        preapproved_redline: >-
+          Delete the non-solicitation clause; if pushed, limit to 12
+          months, directly-involved employees only, general job adverts
+          excluded.
+        counterparty_reply: >-
+          An NDA is not the right home for hiring restrictions, so we have
+          removed the non-solicit; if it is essential we can discuss a
+          narrow, 12-month version.
+        # Draft condition: fires on the incoming document.
+        escalate_if: >-
+          The draft's non-solicit runs longer than 12 months, OR covers
+          employees beyond those directly involved in the discussions.
+
+      - id: NDA-RESIDUALS
+        topic: Residuals clause
+        standard: "Not included; we reject residuals clauses."
+        acceptable_without_approval: "None."
+        fallback: "None without General Counsel approval."
+        preapproved_redline: "Delete the residuals clause in its entirety."
+        counterparty_reply: >-
+          We cannot accept a residuals clause as it would effectively
+          license our confidential information; we have removed it.
+        # Pushback condition: a draft residuals clause is auto-deleted and
+        # does NOT itself require escalation.
+        escalate_if: >-
+          Only if the counterparty insists on retaining residuals language
+          after we delete it.
+
+      - id: NDA-ONE-WAY
+        topic: Mutuality
+        standard: >-
+          Mutual obligations; both parties are potential discloser and
+          recipient.
+        acceptable_without_approval: "None - agreement must remain mutual."
+        fallback: "None."
+        preapproved_redline: "Restore mutual obligations wherever made one-way."
+        counterparty_reply: >-
+          As both parties will be sharing information, obligations must
+          remain mutual; we have restored the mutual language.
+        escalate_if: "Counterparty insists on one-way obligations."
+
+  order_form:
+    description: >-
+      Customer order form under our Master Subscription Agreement
+      (MSA-2026).
+    default_priority: medium
+    rules:
+      - id: OF-PAYMENT
+        topic: Payment terms
+        standard: "Net 30 from invoice date."
+        acceptable_without_approval: "Net 45."
+        fallback: "Net 60 for customers with annual contract value >= 50,000."
+        preapproved_redline: >-
+          Revert payment terms beyond Net 60 to Net 60 (or Net 45 for ACV
+          under 50,000).
+        counterparty_reply: >-
+          Our standard is Net 30; we can extend to Net 60 as a concession
+          for this order size.
+        # Draft condition: fires on the incoming document.
+        escalate_if: >-
+          The draft's payment period is beyond Net 60, OR payment is made
+          contingent on acceptance criteria.
+
+      - id: OF-LIABILITY-CAP
+        topic: Limitation of liability cap
+        standard: "12 months' fees paid or payable under the order form."
+        acceptable_without_approval: "Up to 2x 12 months' fees."
+        fallback: >-
+          2x cap; a super-cap of 3x only for confidentiality and
+          data-protection breaches.
+        preapproved_redline: >-
+          Reduce any general cap above 2x annual fees to 2x; if the
+          counterparty needs more, offer the 3x super-cap limited to
+          confidentiality and data-protection breaches.
+        counterparty_reply: >-
+          We can move from 1x to a 2x fee cap, and offer 3x for
+          confidentiality and data-protection breaches specifically.
+        escalate_if: >-
+          Uncapped liability, or cap removal for anything beyond the
+          standard super-cap heads.
+
+      - id: OF-AUTORENEW
+        topic: Renewal
+        standard: >-
+          Auto-renewal for successive 12-month terms with 60 days' notice
+          of non-renewal.
+        acceptable_without_approval: >-
+          Removal of auto-renewal (renewal by mutual agreement); notice
+          period 30-90 days.
+        fallback: "None needed - both options are acceptable."
+        preapproved_redline: >-
+          Accept removal of auto-renewal or notice periods between 30 and
+          90 days without changes.
+        counterparty_reply: >-
+          We are comfortable removing auto-renewal / adjusting the notice
+          period as requested.
+        escalate_if: >-
+          Customer demands a unilateral right to extend at current pricing
+          beyond 24 months.
+
+      - id: OF-PRICE-INCREASE
+        topic: Renewal price increases
+        standard: >-
+          Price increases at renewal capped at 7% or CPI, whichever is
+          greater.
+        acceptable_without_approval: "Cap between 3% and 7%."
+        fallback: "Flat 3% cap for multi-year commitments (>= 24 months)."
+        preapproved_redline: >-
+          Accept a renewal price-increase cap of no lower than 3%; restore
+          a cap if the customer deletes the increase right entirely for a
+          12-month term.
+        counterparty_reply: >-
+          We can cap renewal increases at 3% given the multi-year
+          commitment.
+        escalate_if: "Price freeze demanded for longer than 36 months."
+
+      - id: OF-TERMINATION
+        topic: Termination for convenience
+        standard: "Not included; termination for material breach only."
+        acceptable_without_approval: "None."
+        fallback: >-
+          Termination for convenience with 90 days' notice and payment of
+          50% of remaining fees, only with sales VP sign-off noted on the
+          file.
+        preapproved_redline: >-
+          Delete termination for convenience; fallback only per
+          OF-TERMINATION with sales VP sign-off.
+        counterparty_reply: >-
+          We price on committed terms, so we have removed termination for
+          convenience; we can discuss an early-exit fee structure if
+          needed.
+        escalate_if: >-
+          Customer demands termination for convenience without an
+          early-exit fee.
+
+      - id: OF-GOV-LAW
+        topic: Governing law and jurisdiction
+        standard: >-
+          England and Wales; courts of England have exclusive
+          jurisdiction.
+        acceptable_without_approval: "New York, Delaware, or Ireland."
+        fallback: >-
+          Counterparty's home jurisdiction if it is in the acceptable
+          list.
+        preapproved_redline: >-
+          If governing law is not England and Wales, New York, Delaware
+          or Ireland, revert to England and Wales.
+        counterparty_reply: >-
+          We can accept New York, Delaware or Irish law as alternatives
+          to our standard English law.
+        # Draft condition: fires on the incoming document.
+        escalate_if: >-
+          The draft's governing law or jurisdiction is outside our
+          approved set (England and Wales, New York, Delaware, Ireland).

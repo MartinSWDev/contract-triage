@@ -1,0 +1,13 @@
+doc_type: nda
+escalate_to_human: true
+deviations:
+- rule: NDA-TERM
+  covered: true
+  note: 3-year term; within acceptable range (accept, no redline needed).
+- rule: null
+  covered: false
+  topic: IP assignment of improvements/feedback
+  note: Broad IP assignment smuggled into NDA - no playbook rule; must be flagged
+    NOT COVERED.
+benign_edits: []
+file: nda_04_vantage_ip_grab.docx

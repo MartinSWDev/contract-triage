@@ -1,0 +1,11 @@
+doc_type: nda
+escalate_to_human: false
+deviations:
+- rule: NDA-TERM
+  covered: true
+  note: 5-year term; within fallback (accept up to 5 years).
+- rule: NDA-GOV-LAW
+  covered: true
+  note: New York law; in the acceptable list (accept as-is).
+benign_edits: []
+file: nda_02_helios_term_govlaw.docx

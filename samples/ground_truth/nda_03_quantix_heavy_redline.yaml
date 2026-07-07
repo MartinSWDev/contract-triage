@@ -1,0 +1,16 @@
+doc_type: nda
+escalate_to_human: true
+deviations:
+- rule: NDA-CONF-PERIOD
+  covered: true
+  note: Perpetual confidentiality; playbook redline to 5 years.
+- rule: NDA-NON-SOLICIT
+  covered: true
+  note: 2-year mutual non-solicit added; exceeds 12-month fallback -> delete/narrow,
+    escalate if pushed.
+- rule: NDA-RESIDUALS
+  covered: true
+  note: Residuals clause added; playbook says delete.
+benign_edits:
+- Purpose paraphrased - same substance
+file: nda_03_quantix_heavy_redline.docx

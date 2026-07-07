@@ -1,0 +1,13 @@
+doc_type: nda
+escalate_to_human: true
+deviations:
+- rule: NDA-CARVEOUTS
+  covered: true
+  note: Independent-development and legal-disclosure carve-outs deleted; reinstate
+    per playbook.
+- rule: NDA-GOV-LAW
+  covered: true
+  note: Japan not in acceptable list; playbook redline reverts to England & Wales;
+    escalate if refused.
+benign_edits: []
+file: nda_05_osaka_pdf.pdf

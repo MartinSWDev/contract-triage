@@ -1,0 +1,19 @@
+doc_type: order_form
+escalate_to_human: true
+deviations:
+- rule: OF-PAYMENT
+  covered: true
+  note: Net 90 requested; beyond Net-60 ceiling -> redline to Net 60 AND escalate.
+- rule: null
+  covered: false
+  topic: Late-payment interest removed
+  note: Deletion of the late-payment interest sentence; no playbook rule -> NOT COVERED.
+- rule: OF-LIABILITY-CAP
+  covered: true
+  note: 3x general cap; playbook redline to 2x general + 3x super-cap for confidentiality/data
+    protection.
+- rule: OF-AUTORENEW
+  covered: true
+  note: Auto-renewal removed; acceptable without approval (accept).
+benign_edits: []
+file: of_02_northwind_payment_liability.docx

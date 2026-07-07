@@ -1,0 +1,13 @@
+doc_type: order_form
+escalate_to_human: true
+deviations:
+- rule: OF-LIABILITY-CAP
+  covered: true
+  note: Uncapped one-sided liability - matches OF-LIABILITY-CAP escalate_if; propose
+    2x cap, escalate.
+- rule: null
+  covered: false
+  topic: Most-favoured-customer / MFN pricing clause
+  note: MFN clause added - no playbook rule; must be flagged NOT COVERED.
+benign_edits: []
+file: of_03_zephyr_uncapped_mfn.pdf
